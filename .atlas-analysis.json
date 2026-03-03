@@ -1,0 +1,144 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "Rive iOS Runtime",
+  "projectDescription": "iOS runtime library for rendering and controlling Rive animations across iOS, macOS, tvOS, and visionOS platforms",
+  "theme": "palm",
+  "primaryColor": "#6366F1",
+  "lightColor": "#818CF8",
+  "darkColor": "#4F46E5",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/rive-files",
+              "concepts/artboards",
+              "concepts/animations",
+              "concepts/state-machines",
+              "concepts/layout-and-fit"
+            ]
+          },
+          {
+            "group": "Platform Guides",
+            "pages": [
+              "guides/swiftui",
+              "guides/uikit",
+              "guides/appkit",
+              "guides/loading-assets",
+              "guides/touch-events"
+            ]
+          },
+          {
+            "group": "Advanced Features",
+            "pages": [
+              "advanced/data-binding",
+              "advanced/rive-text",
+              "advanced/rive-events",
+              "advanced/custom-fonts",
+              "advanced/audio-control",
+              "advanced/performance"
+            ]
+          },
+          {
+            "group": "Migration",
+            "pages": [
+              "migration/overview",
+              "migration/from-5x-to-6x"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "High-Level API",
+            "pages": [
+              "api/rive-view-model",
+              "api/rive-view",
+              "api/rive-model"
+            ]
+          },
+          {
+            "group": "Core Classes",
+            "pages": [
+              "api/rive-file",
+              "api/rive-artboard",
+              "api/rive-linear-animation-instance",
+              "api/rive-state-machine-instance"
+            ]
+          },
+          {
+            "group": "State Machine Inputs",
+            "pages": [
+              "api/rive-smi-input",
+              "api/rive-smi-bool",
+              "api/rive-smi-number",
+              "api/rive-smi-trigger"
+            ]
+          },
+          {
+            "group": "Data Binding",
+            "pages": [
+              "api/rive-data-binding-view-model",
+              "api/rive-data-binding-instance",
+              "api/rive-data-binding-property"
+            ]
+          },
+          {
+            "group": "Supporting Types",
+            "pages": [
+              "api/rive-fit",
+              "api/rive-alignment",
+              "api/rive-event",
+              "api/rive-text-value-run"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "SwiftUI, UIKit, and AppKit support",
+    "Real-time animation playback",
+    "Interactive state machines",
+    "Touch event handling",
+    "Data binding and dynamic content",
+    "Custom font rendering",
+    "Audio playback control",
+    "Multiple artboard and animation support",
+    "Layout and fit options",
+    "HTTP and CDN asset loading"
+  ],
+  "publicApiSurface": [
+    "RiveViewModel",
+    "RiveView",
+    "RiveModel",
+    "RiveFile",
+    "RiveArtboard",
+    "RiveLinearAnimationInstance",
+    "RiveStateMachineInstance",
+    "RiveSMIBool",
+    "RiveSMINumber",
+    "RiveSMITrigger",
+    "RiveFit",
+    "RiveAlignment",
+    "RiveEvent",
+    "RiveTextValueRun",
+    "RiveDataBindingViewModel",
+    "RiveDataBindingViewModelInstance",
+    "RiveFallbackFontProvider",
+    "RiveFallbackFontDescriptor"
+  ]
+}
