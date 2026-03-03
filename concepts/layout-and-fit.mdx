@@ -1,0 +1,387 @@
+---
+title: Layout and Fit
+description: Control how Rive content is sized and positioned using RiveFit and RiveAlignment
+---
+
+Rive provides powerful layout options to control how your animations scale and align within their container views. Use `RiveFit` to determine scaling behavior and `RiveAlignment` to position content.
+
+## RiveFit
+
+The `RiveFit` enum controls how Rive content scales to fit within its container.
+
+### Fit Modes
+
+```swift
+public enum RiveFit: Int {
+    case fill        // Fills the container, may distort aspect ratio
+    case contain     // Fits inside container, maintains aspect ratio
+    case cover       // Covers container, maintains aspect ratio (may crop)
+    case fitWidth    // Matches container width, maintains aspect ratio
+    case fitHeight   // Matches container height, maintains aspect ratio
+    case scaleDown   // Contains content, never scales up
+    case noFit       // No fitting, uses artboard's natural size
+    case layout      // Resizes artboard to match container
+}
+```
+
+### Fit Mode Details
+
+<AccordionGroup>
+  <Accordion title="fill">
+    Stretches the content to fill the entire container. This may distort the aspect ratio of your animation.
+    
+    ```swift
+    viewModel.fit = .fill
+    ```
+    
+    Use when: You want content to exactly fill the container, and aspect ratio isn't critical.
+  </Accordion>
+  
+  <Accordion title="contain (default)">
+    Scales content to fit inside the container while maintaining aspect ratio. The entire animation will be visible.
+    
+    ```swift
+    viewModel.fit = .contain
+    ```
+    
+    Use when: You want the entire animation visible without distortion.
+  </Accordion>
+  
+  <Accordion title="cover">
+    Scales content to cover the entire container while maintaining aspect ratio. Content may be cropped.
+    
+    ```swift
+    viewModel.fit = .cover
+    ```
+    
+    Use when: You want to fill the container without distortion, and cropping is acceptable.
+  </Accordion>
+  
+  <Accordion title="fitWidth">
+    Scales content to match the container's width while maintaining aspect ratio.
+    
+    ```swift
+    viewModel.fit = .fitWidth
+    ```
+    
+    Use when: You want content to span the full width, allowing vertical scrolling if needed.
+  </Accordion>
+  
+  <Accordion title="fitHeight">
+    Scales content to match the container's height while maintaining aspect ratio.
+    
+    ```swift
+    viewModel.fit = .fitHeight
+    ```
+    
+    Use when: You want content to span the full height, allowing horizontal scrolling if needed.
+  </Accordion>
+  
+  <Accordion title="scaleDown">
+    Like `contain`, but never scales content larger than its natural size.
+    
+    ```swift
+    viewModel.fit = .scaleDown
+    ```
+    
+    Use when: You want to prevent low-resolution content from appearing pixelated.
+  </Accordion>
+  
+  <Accordion title="noFit">
+    Content is rendered at its natural artboard size with no scaling.
+    
+    ```swift
+    viewModel.fit = .noFit
+    ```
+    
+    Use when: You want pixel-perfect rendering at the designed size.
+  </Accordion>
+  
+  <Accordion title="layout">
+    Resizes the artboard itself to match the container dimensions.
+    
+    ```swift
+    viewModel.fit = .layout
+    viewModel.layoutScaleFactor = 2.0 // Optional scale factor
+    ```
+    
+    Use when: You want the Rive artboard to dynamically resize with the container.
+  </Accordion>
+</AccordionGroup>
+
+## RiveAlignment
+
+The `RiveAlignment` enum controls where content is positioned within its container.
+
+### Alignment Options
+
+```swift
+public enum RiveAlignment: Int {
+    case topLeft
+    case topCenter
+    case topRight
+    case centerLeft
+    case center      // Default
+    case centerRight
+    case bottomLeft
+    case bottomCenter
+    case bottomRight
+}
+```
+
+### Alignment Grid
+
+```
+┌─────────────────────────────┐
+│ topLeft  topCenter  topRight│
+│                             │
+│centerLeft  center centerRight│
+│                             │
+│bottomLeft bottomCenter bottomRight│
+└─────────────────────────────┘
+```
+
+## Using with RiveViewModel
+
+### Setting Fit and Alignment
+
+```swift
+import RiveRuntime
+
+// Initialize with fit and alignment
+let viewModel = RiveViewModel(
+    fileName: "animation",
+    fit: .contain,
+    alignment: .center
+)
+
+// Change at runtime
+viewModel.fit = .cover
+viewModel.alignment = .topLeft
+```
+
+### SwiftUI Example
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct LayoutView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "layout_test",
+        fit: .contain
+    )
+    @State private var fit: RiveFit = .contain
+    @State private var alignment: RiveAlignment = .center
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+                .onChange(of: fit) { newValue in
+                    viewModel.fit = newValue
+                }
+                .onChange(of: alignment) { newValue in
+                    viewModel.alignment = newValue
+                }
+            
+            // Fit controls
+            HStack {
+                Button("Fill") { fit = .fill }
+                Button("Contain") { fit = .contain }
+                Button("Cover") { fit = .cover }
+            }
+            
+            HStack {
+                Button("Fit Width") { fit = .fitWidth }
+                Button("Fit Height") { fit = .fitHeight }
+                Button("Scale Down") { fit = .scaleDown }
+            }
+            
+            // Alignment controls
+            VStack {
+                HStack {
+                    Button("⬉") { alignment = .topLeft }
+                    Button("⬆") { alignment = .topCenter }
+                    Button("⬈") { alignment = .topRight }
+                }
+                HStack {
+                    Button("⬅") { alignment = .centerLeft }
+                    Button("●") { alignment = .center }
+                    Button("➡") { alignment = .centerRight }
+                }
+                HStack {
+                    Button("⬋") { alignment = .bottomLeft }
+                    Button("⬇") { alignment = .bottomCenter }
+                    Button("⬊") { alignment = .bottomRight }
+                }
+            }
+        }
+    }
+}
+```
+
+## Layout Scale Factor
+
+When using `RiveFit.layout`, you can control the scale factor:
+
+```swift
+viewModel.fit = .layout
+
+// Automatic scaling (default)
+viewModel.layoutScaleFactor = RiveViewModel.layoutScaleFactorAutomatic
+
+// Custom scale factor
+viewModel.layoutScaleFactor = 2.0 // Render at 2x resolution
+viewModel.layoutScaleFactor = 1.0 // Render at 1x resolution
+```
+
+### Dynamic Scale Factor Example
+
+```swift
+@State private var scaleFactor: Double = RiveViewModel.layoutScaleFactorAutomatic
+
+Stepper {
+    Text("Scale factor: \(scaleFactor == RiveViewModel.layoutScaleFactorAutomatic ? "Automatic" : "\(Int(scaleFactor))")
+} onIncrement: {
+    if scaleFactor == RiveViewModel.layoutScaleFactorAutomatic {
+        scaleFactor = 1
+    } else {
+        scaleFactor += 1
+    }
+} onDecrement: {
+    guard scaleFactor > RiveViewModel.layoutScaleFactorAutomatic else { return }
+    scaleFactor -= 1
+    if scaleFactor == 0 {
+        scaleFactor = RiveViewModel.layoutScaleFactorAutomatic
+    }
+}
+.onChange(of: scaleFactor) { newValue in
+    viewModel.layoutScaleFactor = newValue
+}
+```
+
+## Using with RiveRenderer
+
+For manual rendering, use the `RiveRenderer` alignment method:
+
+```swift
+let context = // your CGContext
+let renderer = RiveRenderer(context: context)
+
+// Align content
+renderer.align(
+    with: containerRect,
+    withContentRect: artboardBounds,
+    withAlignment: .center,
+    withFit: .contain
+)
+
+// Draw artboard
+artboard.draw(renderer)
+```
+
+## Responsive Layout Example
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct ResponsiveRiveView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "responsive",
+        fit: .contain
+    )
+    @State private var collapsed = false
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+                .frame(
+                    width: collapsed ? 150 : 400,
+                    height: collapsed ? 300 : 400
+                )
+                .animation(.default, value: collapsed)
+            
+            Button("Toggle Size") {
+                collapsed.toggle()
+            }
+        }
+    }
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use contain for most cases">
+    The `.contain` fit mode is the most common choice as it ensures the entire animation is visible without distortion.
+    
+    ```swift
+    let viewModel = RiveViewModel(
+        fileName: "animation",
+        fit: .contain,
+        alignment: .center
+    )
+    ```
+  </Accordion>
+  
+  <Accordion title="Use cover for background animations">
+    When using Rive content as a background, `.cover` ensures the container is filled without distortion.
+    
+    ```swift
+    viewModel.fit = .cover
+    viewModel.alignment = .center
+    ```
+  </Accordion>
+  
+  <Accordion title="Consider layout for adaptive designs">
+    The `.layout` fit mode allows your artboard to resize dynamically, perfect for responsive interfaces.
+    
+    ```swift
+    viewModel.fit = .layout
+    viewModel.layoutScaleFactor = 2.0 // High DPI displays
+    ```
+  </Accordion>
+  
+  <Accordion title="Test different screen sizes">
+    Always test your fit and alignment choices on different screen sizes and orientations to ensure content displays correctly.
+  </Accordion>
+</AccordionGroup>
+
+## Common Patterns
+
+### Full-Screen Background
+
+```swift
+let backgroundVM = RiveViewModel(
+    fileName: "background",
+    fit: .cover,
+    alignment: .center
+)
+```
+
+### Centered Icon
+
+```swift
+let iconVM = RiveViewModel(
+    fileName: "icon",
+    fit: .scaleDown,
+    alignment: .center
+)
+```
+
+### Hero Image
+
+```swift
+let heroVM = RiveViewModel(
+    fileName: "hero",
+    fit: .fitWidth,
+    alignment: .topCenter
+)
+```
+
+## Related
+
+- [RiveViewModel](/api/rive-view-model) - High-level view model with layout support
+- [Artboards](/concepts/artboards) - Understand artboard dimensions
+- RiveView - Native view rendering

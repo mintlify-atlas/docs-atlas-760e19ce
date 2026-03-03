@@ -1,0 +1,119 @@
+---
+title: "RiveTextValueRun"
+description: "Class for accessing and modifying text run values in Rive animations"
+---
+
+## Overview
+
+`RiveTextValueRun` represents a text run within a Rive animation, allowing you to read and update text content dynamically at runtime.
+
+## Definition
+
+```swift
+@interface RiveTextValueRun : NSObject
+- (NSString*)text;
+- (void)setText:(NSString*)newValue;
+@end
+```
+
+## Methods
+
+### text
+```swift
+- (NSString*)text
+```
+Returns the current text value of the text run.
+
+**Returns:** The current text as a string.
+
+### setText
+```swift
+- (void)setText:(NSString*)newValue
+```
+Sets a new text value for the text run.
+
+**Parameters:**
+- `newValue`: The new text string to display.
+
+## Usage
+
+```swift
+// Get text runs from an artboard
+let artboard = riveFile?.artboard()
+let textRuns = artboard?.textValueRuns() ?? []
+
+// Read current text value
+if let firstRun = textRuns.first {
+    let currentText = firstRun.text()
+    print("Current text: \(currentText)")
+}
+
+// Update text value
+for run in textRuns {
+    run.setText("Updated text")
+}
+```
+
+### Dynamic Text Updates
+
+```swift
+// Update text based on user input
+class AnimationViewController: UIViewController {
+    var viewModel: RiveViewModel?
+    var textRuns: [RiveTextValueRun] = []
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        viewModel = RiveViewModel(fileName: "text_animation")
+        viewModel?.setView(riveView) { [weak self] view in
+            if let artboard = view.riveModel?.getArtboard() {
+                self?.textRuns = artboard.textValueRuns()
+            }
+        }
+    }
+    
+    func updateAnimationText(_ newText: String) {
+        for run in textRuns {
+            run.setText(newText)
+        }
+    }
+}
+```
+
+### Multiple Text Runs
+
+```swift
+// Update specific text runs by index
+let textRuns = artboard?.textValueRuns() ?? []
+
+if textRuns.count > 0 {
+    textRuns[0].setText("Title Text")
+}
+
+if textRuns.count > 1 {
+    textRuns[1].setText("Subtitle Text")
+}
+```
+
+### Localization Example
+
+```swift
+// Update text runs with localized strings
+func localizeAnimation() {
+    guard let artboard = riveFile?.artboard() else { return }
+    let textRuns = artboard.textValueRuns()
+    
+    for (index, run) in textRuns.enumerated() {
+        let localizedKey = "animation.text.\(index)"
+        let localizedText = NSLocalizedString(localizedKey, comment: "")
+        run.setText(localizedText)
+    }
+}
+```
+
+## Related
+
+- [RiveArtboard](/api/rive-artboard) - Provides access to text runs via `textValueRuns()`
+- [RiveFile](/api/rive-file) - Contains artboards with text runs
+- [RiveViewModel](/api/rive-view-model) - Use to access and modify text at runtime

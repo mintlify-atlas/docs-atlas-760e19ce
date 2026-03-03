@@ -1,122 +1,124 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Rive iOS Runtime",
+  "theme": "palm",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#6366F1",
+    "light": "#818CF8",
+    "dark": "#4F46E5"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/rive-app/rive-ios"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/rive-app/rive-ios"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "installation",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "concepts/rive-files",
+              "concepts/artboards",
+              "concepts/animations",
+              "concepts/state-machines",
+              "concepts/layout-and-fit"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Platform Guides",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "guides/swiftui",
+              "guides/uikit",
+              "guides/appkit",
+              "guides/loading-assets",
+              "guides/touch-events"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Advanced Features",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "advanced/data-binding",
+              "advanced/rive-text",
+              "advanced/rive-events",
+              "advanced/custom-fonts",
+              "advanced/audio-control",
+              "advanced/performance"
+            ]
+          },
+          {
+            "group": "Migration",
+            "pages": [
+              "migration/overview",
+              "migration/from-5x-to-6x"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "High-Level API",
             "pages": [
-              "api-reference/introduction"
+              "api/rive-view-model",
+              "api/rive-view",
+              "api/rive-model"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Core Classes",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/rive-file",
+              "api/rive-artboard",
+              "api/rive-linear-animation-instance",
+              "api/rive-state-machine-instance"
+            ]
+          },
+          {
+            "group": "State Machine Inputs",
+            "pages": [
+              "api/rive-smi-input",
+              "api/rive-smi-bool",
+              "api/rive-smi-number",
+              "api/rive-smi-trigger"
+            ]
+          },
+          {
+            "group": "Data Binding",
+            "pages": [
+              "api/rive-data-binding-view-model",
+              "api/rive-data-binding-instance",
+              "api/rive-data-binding-property"
+            ]
+          },
+          {
+            "group": "Supporting Types",
+            "pages": [
+              "api/rive-fit",
+              "api/rive-alignment",
+              "api/rive-event",
+              "api/rive-text-value-run"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

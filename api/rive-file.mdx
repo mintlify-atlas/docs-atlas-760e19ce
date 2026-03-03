@@ -1,0 +1,398 @@
+---
+title: "RiveFile"
+description: "Reference for the RiveFile class, which represents a loaded .riv file and provides access to artboards, animations, and view models."
+---
+
+## Overview
+
+`RiveFile` is the main entry point for working with Rive files in iOS. It handles loading `.riv` files from various sources and provides access to artboards, animations, state machines, and data binding view models.
+
+## Class Properties
+
+<ResponseField name="majorVersion" type="uint" required>
+  The major version of the Rive runtime (class property).
+</ResponseField>
+
+<ResponseField name="minorVersion" type="uint" required>
+  The minor version of the Rive runtime (class property).
+</ResponseField>
+
+<ResponseField name="isLoaded" type="bool" required>
+  Indicates whether the Rive file is loaded and ready for use.
+</ResponseField>
+
+<ResponseField name="delegate" type="id" required>
+  Delegate for callbacks when a file has finished loading. Conforms to `RiveFileDelegate` protocol.
+</ResponseField>
+
+<ResponseField name="viewModelCount" type="NSUInteger" required>
+  The number of view models in the file.
+</ResponseField>
+
+## Initialization Methods
+
+### From Byte Array
+
+<ParamField path="bytes" type="NSArray*" required>
+  Array of bytes containing the Rive file data.
+</ParamField>
+
+<ParamField path="cdn" type="bool" required>
+  Whether to load assets from Rive's CDN.
+</ParamField>
+
+<ParamField path="customAssetLoader" type="LoadAsset" required>
+  Custom block for loading assets. Called with `RiveFileAsset* asset`, `NSData* data`, and `RiveFactory* factory`.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if initialization fails.
+</ParamField>
+
+```objc
+// Initialize from byte array
+- (nullable instancetype)initWithByteArray:(NSArray*)bytes
+                                   loadCdn:(bool)cdn
+                                     error:(NSError**)error;
+
+// With custom asset loader
+- (nullable instancetype)initWithByteArray:(NSArray*)bytes
+                                   loadCdn:(bool)cdn
+                         customAssetLoader:(LoadAsset)customAssetLoader
+                                     error:(NSError**)error;
+```
+
+### From Bytes
+
+<ParamField path="bytes" type="UInt8*" required>
+  Pointer to raw bytes containing the Rive file data.
+</ParamField>
+
+<ParamField path="byteLength" type="UInt64" required>
+  Length of the byte array.
+</ParamField>
+
+```objc
+// Initialize from raw bytes
+- (nullable instancetype)initWithBytes:(UInt8*)bytes
+                            byteLength:(UInt64)length
+                               loadCdn:(bool)cdn
+                                 error:(NSError**)error;
+
+// With custom asset loader
+- (nullable instancetype)initWithBytes:(UInt8*)bytes
+                            byteLength:(UInt64)length
+                               loadCdn:(bool)cdn
+                     customAssetLoader:(LoadAsset)customAssetLoader
+                                 error:(NSError**)error;
+```
+
+### From NSData
+
+<ParamField path="bytes" type="NSData*" required>
+  NSData object containing the Rive file data.
+</ParamField>
+
+```objc
+// Initialize from NSData
+- (nullable instancetype)initWithData:(NSData*)bytes
+                              loadCdn:(bool)cdn
+                                error:(NSError**)error;
+
+// With custom asset loader
+- (nullable instancetype)initWithData:(NSData*)bytes
+                              loadCdn:(bool)cdn
+                    customAssetLoader:(LoadAsset)customAssetLoader
+                                error:(NSError**)error;
+```
+
+### From Resource
+
+<ParamField path="resourceName" type="NSString*" required>
+  Name of the resource file in the app bundle.
+</ParamField>
+
+<ParamField path="extension" type="NSString*">
+  File extension of the resource (e.g., "riv"). Optional if included in resourceName.
+</ParamField>
+
+```objc
+// Initialize from bundle resource with extension
+- (nullable instancetype)initWithResource:(NSString*)resourceName
+                            withExtension:(NSString*)extension
+                                  loadCdn:(bool)cdn
+                                    error:(NSError**)error;
+
+// With custom asset loader
+- (nullable instancetype)initWithResource:(NSString*)resourceName
+                            withExtension:(NSString*)extension
+                                  loadCdn:(bool)cdn
+                        customAssetLoader:(LoadAsset)customAssetLoader
+                                    error:(NSError**)error;
+
+// Initialize from bundle resource without separate extension
+- (nullable instancetype)initWithResource:(NSString*)resourceName
+                                  loadCdn:(bool)cdn
+                                    error:(NSError**)error;
+
+// With custom asset loader
+- (nullable instancetype)initWithResource:(NSString*)resourceName
+                                  loadCdn:(bool)cdn
+                        customAssetLoader:(LoadAsset)customAssetLoader
+                                    error:(NSError**)error;
+```
+
+### From HTTP URL
+
+<ParamField path="url" type="NSString*" required>
+  HTTP URL of the Rive file to load.
+</ParamField>
+
+<ParamField path="delegate" type="id<RiveFileDelegate>" required>
+  Delegate that receives callbacks when loading completes or fails.
+</ParamField>
+
+```objc
+// Initialize from HTTP URL
+- (nullable instancetype)initWithHttpUrl:(NSString*)url
+                                 loadCdn:(bool)cdn
+                            withDelegate:(id<RiveFileDelegate>)delegate;
+
+// With custom asset loader
+- (nullable instancetype)initWithHttpUrl:(NSString*)url
+                                 loadCdn:(bool)cdn
+                       customAssetLoader:(LoadAsset)customAssetLoader
+                            withDelegate:(id<RiveFileDelegate>)delegate;
+```
+
+## Artboard Methods
+
+### artboard:
+
+Returns a reference to the default artboard.
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveArtboard*" required>
+  The default artboard, or nil if an error occurs.
+</ResponseField>
+
+```objc
+- (RiveArtboard* __nullable)artboard:(NSError**)error;
+```
+
+### artboardCount
+
+Returns the number of artboards in the file.
+
+<ResponseField name="return" type="NSInteger" required>
+  The number of artboards.
+</ResponseField>
+
+```objc
+- (NSInteger)artboardCount;
+```
+
+### artboardFromIndex:error:
+
+Returns the artboard by its index.
+
+<ParamField path="index" type="NSInteger" required>
+  Zero-based index of the artboard.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveArtboard*" required>
+  The artboard at the specified index, or nil if an error occurs.
+</ResponseField>
+
+```objc
+- (RiveArtboard* __nullable)artboardFromIndex:(NSInteger)index
+                                        error:(NSError**)error;
+```
+
+### artboardFromName:error:
+
+Returns the artboard by its name.
+
+<ParamField path="name" type="NSString*" required>
+  Name of the artboard as defined in the Rive file.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveArtboard*" required>
+  The artboard with the specified name, or nil if an error occurs.
+</ResponseField>
+
+```objc
+- (RiveArtboard* __nullable)artboardFromName:(NSString*)name
+                                       error:(NSError**)error;
+```
+
+### artboardNames
+
+Returns the names of all artboards in the file.
+
+<ResponseField name="return" type="NSArray<NSString*>*" required>
+  Array of artboard names.
+</ResponseField>
+
+```objc
+- (NSArray<NSString*>*)artboardNames;
+```
+
+## Data Binding Methods
+
+### viewModelAtIndex:
+
+Returns a view model from the file by index. The index starts at 0, where 0 is the first view model listed in the editor's "Data" panel from top-to-bottom.
+
+<ParamField path="index" type="NSUInteger" required>
+  The index of the view model.
+</ParamField>
+
+<ResponseField name="return" type="RiveDataBindingViewModel*" required>
+  A view model if one exists by index, otherwise nil.
+</ResponseField>
+
+```objc
+- (nullable RiveDataBindingViewModel*)viewModelAtIndex:(NSUInteger)index;
+```
+
+### viewModelNamed:
+
+Returns a view model from the file by name. The name must match the name of a view model in the editor's "Data" panel.
+
+<ParamField path="name" type="NSString*" required>
+  The name of the view model.
+</ParamField>
+
+<ResponseField name="return" type="RiveDataBindingViewModel*" required>
+  A view model if one exists by name, otherwise nil.
+</ResponseField>
+
+```objc
+- (nullable RiveDataBindingViewModel*)viewModelNamed:(nonnull NSString*)name;
+```
+
+### defaultViewModelForArtboard:
+
+Returns the default view model for an artboard. The default view model is the view model selected under the "Data Bind" panel for an artboard.
+
+<ParamField path="artboard" type="RiveArtboard*" required>
+  The artboard within the RiveFile that contains a data binding view model.
+</ParamField>
+
+<ResponseField name="return" type="RiveDataBindingViewModel*" required>
+  A view model if one exists for the artboard, otherwise nil.
+</ResponseField>
+
+```objc
+- (nullable RiveDataBindingViewModel*)defaultViewModelForArtboard:(RiveArtboard*)artboard;
+```
+
+### bindableArtboardWithName:error:
+
+Returns a bindable artboard from the file by its name. A bindable artboard is an artboard that can be used with data binding features.
+
+<ParamField path="name" type="NSString*" required>
+  The name of the artboard to retrieve. Must match exactly with an artboard name in the Rive file.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveBindableArtboard*" required>
+  A bindable artboard if one exists with the specified name, otherwise nil.
+</ResponseField>
+
+```objc
+- (nullable RiveBindableArtboard*)bindableArtboardWithName:(NSString*)name
+                                                     error:(NSError**)error;
+```
+
+### defaultBindableArtboard:
+
+Returns the default bindable artboard from the file. A bindable artboard is an artboard that can be used with data binding features.
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveBindableArtboard*" required>
+  The default bindable artboard if one exists, otherwise nil.
+</ResponseField>
+
+```objc
+- (nullable RiveBindableArtboard*)defaultBindableArtboard:(NSError**)error;
+```
+
+## RiveFileDelegate Protocol
+
+Delegate protocol for receiving file loading callbacks.
+
+### riveFileDidLoad:error:
+
+Called when a Rive file has successfully loaded.
+
+<ParamField path="riveFile" type="RiveFile*" required>
+  The RiveFile that finished loading.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object.
+</ParamField>
+
+<ResponseField name="return" type="BOOL" required>
+  Return YES if loading was successful, NO otherwise.
+</ResponseField>
+
+```objc
+- (BOOL)riveFileDidLoad:(RiveFile*)riveFile error:(NSError**)error;
+```
+
+### riveFileDidError:
+
+Called when an error occurs during file loading.
+
+<ParamField path="error" type="NSError*" required>
+  The error that occurred.
+</ParamField>
+
+```objc
+- (void)riveFileDidError:(NSError*)error;
+```
+
+## Example Usage
+
+```objc
+// Load from bundle resource
+NSError* error = nil;
+RiveFile* file = [[RiveFile alloc] initWithResource:@"myAnimation"
+                                      withExtension:@"riv"
+                                            loadCdn:YES
+                                              error:&error];
+
+if (error) {
+    NSLog(@"Failed to load file: %@", error);
+    return;
+}
+
+// Get default artboard
+RiveArtboard* artboard = [file artboard:&error];
+
+// Get artboard by name
+RiveArtboard* specificArtboard = [file artboardFromName:@"MyArtboard" error:&error];
+
+// List all artboards
+NSArray<NSString*>* artboardNames = [file artboardNames];
+```

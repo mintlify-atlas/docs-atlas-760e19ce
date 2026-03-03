@@ -1,0 +1,228 @@
+---
+title: Migrating from 5.x to 6.x
+description: Complete guide for migrating from Rive iOS Runtime 5.x to 6.x
+---
+
+## Overview
+
+Version 6.0.0 of the Rive iOS Runtime, released in July 2024, introduced significant changes to the rendering engine. This guide will help you migrate from version 5.x to 6.x.
+
+## Breaking Changes
+
+### Skia Renderer Removal
+
+The most significant change in 6.0 is the complete removal of the Skia rendering backend.
+
+<Warning>
+**Breaking Change**: The Skia renderer has been removed from the iOS runtime. The runtime now uses Rive's native rendering engine exclusively.
+</Warning>
+
+**What this means for you:**
+
+- **No code changes required** - The public API remains the same
+- **Better performance** - The native renderer is optimized for Apple platforms
+- **Smaller binary size** - Removing Skia significantly reduces the framework size
+- **Improved compatibility** - Better support for Metal and Apple's graphics stack
+
+**Migration steps:**
+
+1. Update to version 6.0 or later
+2. Rebuild your project
+3. Test your animations - they should render identically with improved performance
+
+No code changes are necessary for the renderer change. The switch is transparent to your application code.
+
+## New Features in 6.x
+
+While migrating, you can also take advantage of new features introduced in the 6.x line:
+
+### Data Binding (6.8.0+)
+
+Version 6.8.0 introduced support for data binding, allowing you to bind external data to your Rive animations.
+
+```swift
+// Create a view model instance
+let viewModel = riveFile?.artboard?.viewModel()
+
+// Set property values
+try? viewModel?.setTextValue("username", value: "John")
+try? viewModel?.setNumberValue("score", value: 100)
+```
+
+Learn more in the [Data Binding documentation](/advanced/data-binding).
+
+### Multi-touch Support (6.12.0+)
+
+Version 6.12.0 added multi-touch support for richer interactions:
+
+```swift
+// Multi-touch is automatically handled by RiveView
+let riveView = RiveView()
+riveView.configure(model)
+```
+
+### Scripting Support (6.13.0+)
+
+Version 6.13.0 introduced scripting capabilities for dynamic animations.
+
+### Platform Support
+
+Version 6.5.0+ added support for additional Apple platforms:
+
+- **tvOS** - Build Rive animations for Apple TV
+- **visionOS** - Support for Apple Vision Pro
+- **Mac Catalyst** - Run iOS apps with Rive on macOS
+
+## Performance Improvements
+
+Version 6.x includes numerous performance enhancements:
+
+- **Command queue-based runtime** (6.15.0) - Improved rendering pipeline
+- **Draw optimization** (6.14.0) - Configurable draw optimizations
+- **Offscreen drawing optimization** (6.9.5) - Skip drawing when view is offscreen
+- **Display link improvements** (6.7.0+) - Better frame timing on macOS 14+
+
+## API Enhancements
+
+While the core API remains stable, 6.x includes several helpful additions:
+
+### RiveViewModel Improvements
+
+```swift
+// Set artboard volume (6.8.1+)
+model.setArtboardVolume(0.5)
+
+// Replace view model instances (6.8.1+)
+model.replaceViewModelInstance(newInstance)
+```
+
+### Fallback Font Support (6.1.0+)
+
+```swift
+// Configure fallback fonts for better text rendering
+let fontProvider = RiveFallbackFontProvider()
+fontProvider.registerFont(descriptor: fontDescriptor)
+```
+
+### Input Getters (6.2.1+)
+
+```swift
+// Access state machine inputs
+let inputs = viewModel.inputs()
+for input in inputs {
+    print("Input: \(input.name)")
+}
+```
+
+## Dependency Updates
+
+### Swift Package Manager
+
+Update your `Package.swift`:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/rive-app/rive-ios.git", from: "6.15.0")
+]
+```
+
+### CocoaPods
+
+Update your `Podfile`:
+
+```ruby
+pod 'RiveRuntime', '~> 6.15'
+```
+
+Then run:
+
+```bash
+pod update RiveRuntime
+```
+
+## Platform Requirements
+
+Version 6.x requires:
+
+- **iOS** 14.0+
+- **macOS** 13.1+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+- **Mac Catalyst** 14.0+
+
+<Note>
+If you need to support older platform versions, you must remain on version 5.x. Check the [Package.swift](https://github.com/rive-app/rive-ios/blob/main/Package.swift) for exact requirements.
+</Note>
+
+## Migration Checklist
+
+Follow this checklist for a smooth migration:
+
+- [ ] Review the [CHANGELOG](https://github.com/rive-app/rive-ios/blob/main/CHANGELOG.md) for detailed changes
+- [ ] Verify your app meets the minimum platform requirements
+- [ ] Update your dependency manager configuration (SPM or CocoaPods)
+- [ ] Run `pod update` (if using CocoaPods) or update packages (if using SPM)
+- [ ] Build your project and resolve any build errors
+- [ ] Test all Rive animations in your app
+- [ ] Verify state machine interactions work correctly
+- [ ] Check layout rendering on different screen sizes
+- [ ] Test on all target platforms (iOS, macOS, tvOS, visionOS)
+- [ ] Review performance and compare with previous version
+- [ ] Test on physical devices, not just simulators
+- [ ] Update any integration tests that verify Rive functionality
+
+## Common Issues
+
+### Build Errors After Update
+
+If you encounter build errors after updating:
+
+1. Clean your build folder (`Product > Clean Build Folder` in Xcode)
+2. Delete derived data
+3. Update your package dependencies
+4. Restart Xcode
+
+```bash
+# Clean derived data from terminal
+rm -rf ~/Library/Developer/Xcode/DerivedData
+```
+
+### Rendering Differences
+
+While the rendering should be identical, if you notice any differences:
+
+1. Ensure you're using the latest patch version (e.g., 6.15.2)
+2. Check if your Rive file uses any deprecated features
+3. Test with a clean build
+4. Report issues on [GitHub](https://github.com/rive-app/rive-ios/issues)
+
+### Performance Regression
+
+Version 6.x should be faster than 5.x. If you experience performance issues:
+
+1. Update to the latest 6.x patch version
+2. Enable draw optimizations (available in 6.14.0+)
+3. Profile your app to identify bottlenecks
+4. Check for any custom rendering code that might conflict
+
+## Getting Help
+
+If you run into issues during migration:
+
+- **GitHub Issues**: [rive-app/rive-ios/issues](https://github.com/rive-app/rive-ios/issues)
+- **Community Forum**: [community.rive.app](https://community.rive.app/)
+- **Documentation**: [rive.app/docs/runtimes/apple](https://rive.app/docs/runtimes/apple/apple)
+- **Examples**: Check the [Example-iOS](https://github.com/rive-app/rive-ios/tree/main/Example-iOS) folder in the repository
+
+## Next Steps
+
+After successfully migrating to 6.x:
+
+1. Explore new features like [Data Binding](/advanced/data-binding)
+2. Review [Performance Best Practices](/advanced/performance)
+3. Consider implementing multi-touch interactions
+4. Stay updated with future 6.x releases for new features and improvements
+
+<Note>
+We recommend always using the latest stable version within the 6.x line to benefit from bug fixes and performance improvements.
+</Note>

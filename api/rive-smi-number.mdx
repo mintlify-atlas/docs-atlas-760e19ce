@@ -1,0 +1,123 @@
+---
+title: "RiveSMINumber"
+description: "Number input class for controlling Rive state machines in the iOS Runtime."
+---
+
+## Overview
+
+`RiveSMINumber` represents a numeric input in a Rive state machine. Use this class to get and set floating-point values that control state transitions and animations.
+
+Inherits from [RiveSMIInput](/api/rive-smi-input).
+
+## Methods
+
+### value
+
+```objc
+- (float)value;
+```
+
+Gets the current numeric value of the input.
+
+**Returns:** The current value as a `float`
+
+### setValue
+
+```objc
+- (void)setValue:(float)newValue;
+```
+
+Sets the numeric value of the input.
+
+**Parameters:**
+- `newValue` - The new floating-point value to set
+
+## Usage Example
+
+### Basic Usage
+
+```objc
+// Get a number input from the state machine
+RiveSMINumber* speed = (RiveSMINumber*)[stateMachine inputFromName:@"speed"];
+
+// Set the value
+[speed setValue:2.5];
+
+// Get the current value
+float currentSpeed = [speed value];
+NSLog(@"Current speed: %.2f", currentSpeed);
+```
+
+### Animation Control
+
+```objc
+// Control animation speed based on user interaction
+RiveSMINumber* animationSpeed = (RiveSMINumber*)[stateMachine inputFromName:@"animationSpeed"];
+
+// Slow motion
+[animationSpeed setValue:0.5];
+
+// Normal speed
+[animationSpeed setValue:1.0];
+
+// Fast forward
+[animationSpeed setValue:2.0];
+```
+
+### Interactive Example
+
+```objc
+// Initialize Rive view and get state machine
+RiveStateMachineInstance* stateMachine = [riveView stateMachine:@"State Machine 1"];
+
+// Get number inputs
+RiveSMINumber* level = (RiveSMINumber*)[stateMachine inputFromName:@"level"];
+RiveSMINumber* progress = (RiveSMINumber*)[stateMachine inputFromName:@"progress"];
+
+// Update based on game state
+[level setValue:5];
+[progress setValue:0.75];  // 75% complete
+
+// Advance the state machine
+[stateMachine advanceBy:deltaTime];
+```
+
+### Incremental Updates
+
+```objc
+RiveSMINumber* counter = (RiveSMINumber*)[stateMachine inputFromName:@"counter"];
+
+// Increment the value
+float currentValue = [counter value];
+[counter setValue:currentValue + 1.0];
+```
+
+### Slider Integration
+
+```objc
+// Connect a UISlider to a Rive number input
+- (IBAction)sliderValueChanged:(UISlider*)slider {
+    RiveSMINumber* volumeInput = (RiveSMINumber*)[stateMachine inputFromName:@"volume"];
+    [volumeInput setValue:slider.value];
+}
+```
+
+## Type Checking
+
+You can verify an input is a number before casting:
+
+```objc
+RiveSMIInput* input = [stateMachine inputFromName:@"myInput"];
+
+if ([input isNumber]) {
+    RiveSMINumber* numberInput = (RiveSMINumber*)input;
+    [numberInput setValue:100.0];
+}
+```
+
+## See Also
+
+- [RiveSMIInput](/api/rive-smi-input)
+- [RiveSMIBool](/api/rive-smi-bool)
+- [RiveSMITrigger](/api/rive-smi-trigger)
+- [RiveStateMachineInstance](/api/rive-state-machine-instance)

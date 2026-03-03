@@ -1,0 +1,446 @@
+---
+title: Performance Optimization
+description: Tips and best practices for optimizing Rive animation performance on iOS
+---
+
+Optimizing your Rive animations ensures smooth playback and a great user experience. This guide covers techniques for improving performance of the Rive iOS Runtime.
+
+## Frame Rate Control
+
+### Setting Preferred Frame Rate
+
+Control the rendering frame rate to balance performance and visual quality:
+
+```swift
+import RiveRuntime
+import QuartzCore
+
+let viewModel = RiveViewModel(fileName: "animation")
+
+// iOS 15+ with CAFrameRateRange
+if #available(iOS 15.0, *) {
+    let frameRate = CAFrameRateRange(
+        minimum: 30,
+        maximum: 120,
+        preferred: 60
+    )
+    viewModel.setPreferredFrameRateRange(preferredFrameRateRange: frameRate)
+} else {
+    // Older iOS versions
+    viewModel.setPreferredFramesPerSecond(preferredFramesPerSecond: 60)
+}
+```
+
+### Frame Rate Guidelines
+
+- **30 FPS**: Battery-efficient, good for simple animations
+- **60 FPS**: Standard smooth animations (recommended default)
+- **120 FPS**: ProMotion displays, very smooth but higher battery usage
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct PerformanceView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "skills",
+        stateMachineName: "Designer's Test"
+    )
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+                .frame(height: 200)
+            
+            HStack {
+                Button("30 fps") {
+                    setFrameRate(30)
+                }
+                Button("60 fps") {
+                    setFrameRate(60)
+                }
+                Button("120 fps") {
+                    setFrameRate(120)
+                }
+            }
+        }
+        .onAppear {
+            setFrameRate(60)  // Default to 60 fps
+        }
+    }
+    
+    private func setFrameRate(_ fps: Float) {
+        if #available(iOS 15.0, *) {
+            viewModel.setPreferredFrameRateRange(
+                preferredFrameRateRange: CAFrameRateRange(
+                    minimum: 30,
+                    maximum: 120,
+                    preferred: fps
+                )
+            )
+        } else {
+            viewModel.setPreferredFramesPerSecond(
+                preferredFramesPerSecond: Int(fps)
+            )
+        }
+    }
+}
+```
+
+## Resource Management
+
+### File Loading
+
+Cache and reuse Rive files rather than loading them repeatedly:
+
+```swift
+import RiveRuntime
+
+class RiveFileCache {
+    static let shared = RiveFileCache()
+    private var cache: [String: RiveFile] = [:]
+    
+    func file(named name: String) throws -> RiveFile {
+        if let cached = cache[name] {
+            return cached
+        }
+        
+        let file = try RiveFile(name: name)
+        cache[name] = file
+        return file
+    }
+    
+    func clearCache() {
+        cache.removeAll()
+    }
+}
+
+// Usage
+let file = try RiveFileCache.shared.file(named: "animation")
+```
+
+### Model Reuse
+
+Reuse `RiveModel` instances when showing the same animation multiple times:
+
+```swift
+import RiveRuntime
+
+class AnimationManager {
+    private var models: [String: RiveModel] = [:]
+    
+    func model(for fileName: String) throws -> RiveModel {
+        if let existing = models[fileName] {
+            return existing
+        }
+        
+        let model = try RiveModel(fileName: fileName)
+        models[fileName] = model
+        return model
+    }
+}
+```
+
+### Memory Management
+
+Release resources when views disappear:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct OptimizedView: View {
+    @StateObject private var viewModel = RiveViewModel(fileName: "animation")
+    
+    var body: some View {
+        viewModel.view()
+            .onAppear {
+                viewModel.play()
+            }
+            .onDisappear {
+                viewModel.pause()
+                // Resources are automatically cleaned up when viewModel is deallocated
+            }
+    }
+}
+```
+
+## Rendering Optimization
+
+### Layout Scale Factor
+
+Adjust the layout scale factor for better performance on lower-end devices:
+
+```swift
+import RiveRuntime
+
+let viewModel = RiveViewModel(
+    fileName: "animation",
+    fit: .contain,
+    alignment: .center,
+    layoutScaleFactor: 1.0  // 1.0 = native resolution, 0.5 = half resolution
+)
+
+// Or use automatic scale factor
+let automaticViewModel = RiveViewModel(
+    fileName: "animation",
+    layoutScaleFactor: RiveViewModel.layoutScaleFactorAutomatic
+)
+```
+
+### Fit and Alignment
+
+Choose appropriate fit modes:
+
+```swift
+import RiveRuntime
+
+// Efficient - no scaling
+let viewModel1 = RiveViewModel(
+    fileName: "animation",
+    fit: .none
+)
+
+// Standard - scales to fit
+let viewModel2 = RiveViewModel(
+    fileName: "animation",
+    fit: .contain  // or .cover, .fill, .fitWidth, .fitHeight
+)
+```
+
+## Animation Optimization
+
+### Pause When Not Visible
+
+Pause animations when they're not on screen:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct LazyAnimationView: View {
+    @StateObject private var viewModel = RiveViewModel(fileName: "animation")
+    @State private var isVisible = false
+    
+    var body: some View {
+        viewModel.view()
+            .onAppear {
+                isVisible = true
+                viewModel.play()
+            }
+            .onDisappear {
+                isVisible = false
+                viewModel.pause()
+            }
+    }
+}
+```
+
+### Loop Control
+
+Limit loops for complex animations:
+
+```swift
+import RiveRuntime
+
+let viewModel = RiveViewModel(fileName: "complex_animation")
+
+// Play once instead of looping
+viewModel.play(animationName: "intro", loop: .oneShot)
+
+// Or limit loop count
+viewModel.play(animationName: "effect", loop: .loop)  // Infinite
+// Consider .oneShot or .pingPong for less frequent updates
+```
+
+### State Machine Efficiency
+
+Use state machines efficiently:
+
+```swift
+import RiveRuntime
+
+let viewModel = RiveViewModel(
+    fileName: "interactive",
+    stateMachineName: "State Machine"
+)
+
+// Batch state changes
+func updateState(score: Int, level: Int) {
+    // Update multiple inputs at once rather than triggering multiple renders
+    viewModel.setInput("score", value: Double(score))
+    viewModel.setInput("level", value: Double(level))
+    viewModel.triggerInput("levelUp")
+}
+```
+
+## Data Binding Performance
+
+### Batch Updates
+
+When using data binding, batch property updates:
+
+```swift
+@_spi(RiveExperimental)
+import RiveRuntime
+
+func updateMultipleProperties() {
+    // Update multiple properties
+    viewModelInstance.setValue(of: nameProperty, to: "Alice")
+    viewModelInstance.setValue(of: scoreProperty, to: 100.0)
+    viewModelInstance.setValue(of: levelProperty, to: 5.0)
+    
+    // Single manual advance instead of advancing after each update
+    if !viewModel.isPlaying {
+        viewModel.riveView?.advance(delta: 0)
+    }
+}
+```
+
+### Stream Management
+
+Clean up value streams when no longer needed:
+
+```swift
+@_spi(RiveExperimental)
+import RiveRuntime
+
+class DataBindingController {
+    private var streamTask: Task<Void, Never>?
+    
+    func observeProperty() {
+        streamTask = Task {
+            let stream = viewModelInstance.valueStream(of: property)
+            for try await value in stream {
+                handleValue(value)
+            }
+        }
+    }
+    
+    func cleanup() {
+        streamTask?.cancel()
+        streamTask = nil
+    }
+}
+```
+
+## View Optimization
+
+### Avoid Excessive View Updates
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct EfficientView: View {
+    @StateObject private var viewModel = RiveViewModel(fileName: "animation")
+    
+    var body: some View {
+        // Create view once, not on every render
+        viewModel.view()
+            .frame(width: 300, height: 300)
+    }
+}
+```
+
+### Appropriate View Sizing
+
+Set explicit frame sizes to avoid layout recalculations:
+
+```swift
+import SwiftUI
+
+struct SizedView: View {
+    @StateObject private var viewModel = RiveViewModel(fileName: "animation")
+    
+    var body: some View {
+        // Explicit size - better performance
+        viewModel.view()
+            .frame(width: 300, height: 300)
+        
+        // Rather than flexible sizing
+        // viewModel.view().frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+```
+
+## Profiling and Debugging
+
+### Monitor Frame Rate
+
+Use Xcode Instruments to profile:
+
+1. Open **Xcode Instruments**
+2. Select **Time Profiler** or **Core Animation**
+3. Record while running your animation
+4. Look for bottlenecks in the call stack
+
+### Check Memory Usage
+
+```swift
+import RiveRuntime
+
+#if RIVE_ENABLE_REFERENCE_COUNTING
+func logInstanceCounts() {
+    print("Artboard instances: \(RiveArtboard.instanceCount())")
+}
+#endif
+```
+
+### Performance Metrics
+
+Monitor key metrics:
+- Frame rate consistency (should match preferred FPS)
+- Memory usage (watch for leaks)
+- CPU usage (should be reasonable for device)
+- Battery impact (test on device, not simulator)
+
+## Best Practices Summary
+
+1. **Frame Rate**: Use 60 FPS as default, adjust based on device and complexity
+2. **Caching**: Cache `RiveFile` and `RiveModel` instances when reusing animations
+3. **Visibility**: Pause animations when not visible
+4. **Layout Scale**: Use automatic or reduce for lower-end devices
+5. **Batch Updates**: Group property updates and manual advances
+6. **Resource Cleanup**: Let ARC handle cleanup, but cancel tasks/streams explicitly
+7. **Explicit Sizing**: Set explicit frame sizes for better layout performance
+8. **Loop Control**: Limit infinite loops for complex animations
+9. **Profile Regularly**: Use Instruments to identify bottlenecks
+10. **Test on Device**: Simulator performance doesn't match real devices
+
+## Common Performance Issues
+
+### Stuttering Animation
+- Reduce frame rate
+- Simplify animation complexity in Rive editor
+- Check for main thread blocking
+- Reduce layout scale factor
+
+### High Memory Usage
+- Clear file cache when memory is low
+- Limit number of concurrent animations
+- Release strong references to unused models
+
+### Battery Drain
+- Lower frame rate (30 FPS instead of 120)
+- Pause animations when app is backgrounded
+- Use `.oneShot` instead of `.loop` where appropriate
+
+## Platform Considerations
+
+### iOS Devices
+- Newer devices (iPhone 13+): 120 FPS is fine
+- Mid-range devices (iPhone X-12): Stick to 60 FPS
+- Older devices (iPhone 8 and earlier): Consider 30 FPS
+
+### iPad
+- iPad Pro: Can handle 120 FPS
+- Standard iPad: 60 FPS recommended
+
+### Simulator
+Always test performance on real devices - simulator performance is not representative.
+
+## See Also
+
+- [RiveViewModel](/api/rive-view-model) - ViewModel configuration
+- [Audio Control](/advanced/audio-control) - Managing audio playback

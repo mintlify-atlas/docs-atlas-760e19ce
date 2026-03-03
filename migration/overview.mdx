@@ -1,0 +1,83 @@
+---
+title: Migration Guide Overview
+description: Learn how to migrate between major versions of the Rive iOS Runtime SDK
+---
+
+This section provides migration guides to help you upgrade between major versions of the Rive iOS Runtime SDK.
+
+## Available Migration Guides
+
+<CardGroup cols={1}>
+  <Card title="Migrating from 5.x to 6.x" icon="arrow-up" href="/migration/from-5x-to-6x">
+    Learn about breaking changes and how to migrate from version 5.x to 6.x
+  </Card>
+</CardGroup>
+
+## Why Migrate?
+
+Keeping your Rive iOS Runtime up to date ensures you benefit from:
+
+- **Performance improvements** - Each major version includes optimizations and rendering enhancements
+- **New features** - Access the latest Rive capabilities like data binding, scripting, and multi-touch support
+- **Bug fixes** - Critical fixes and stability improvements
+- **Platform support** - Support for the latest iOS, macOS, tvOS, and visionOS versions
+- **Security updates** - Stay current with security patches and best practices
+
+## General Migration Tips
+
+### 1. Review the CHANGELOG
+
+Before migrating, review the [CHANGELOG](https://github.com/rive-app/rive-ios/blob/main/CHANGELOG.md) for detailed information about all changes between versions.
+
+### 2. Update Dependencies
+
+Update your dependency manager configuration:
+
+<CodeGroup>
+```swift Swift Package Manager
+// In Package.swift
+dependencies: [
+    .package(url: "https://github.com/rive-app/rive-ios.git", from: "6.0.0")
+]
+```
+
+```ruby CocoaPods
+# In Podfile
+pod 'RiveRuntime', '~> 6.0'
+```
+</CodeGroup>
+
+### 3. Test Thoroughly
+
+After migration:
+
+- Test all Rive animations in your app
+- Verify state machine interactions work as expected
+- Check layout and rendering on different device sizes
+- Test on all supported platforms (iOS, macOS, tvOS, visionOS)
+- Review performance metrics
+
+### 4. Incremental Updates
+
+For the smoothest migration experience:
+
+1. Update to the latest patch version of your current major version first
+2. Address any deprecation warnings
+3. Then upgrade to the next major version
+4. Test thoroughly at each step
+
+## Getting Help
+
+If you encounter issues during migration:
+
+- Check the [GitHub Issues](https://github.com/rive-app/rive-ios/issues) for known problems
+- Ask questions in the [Rive Community](https://community.rive.app/)
+- Review the [Runtime Documentation](https://rive.app/docs/runtimes/apple/apple)
+
+## Version Support
+
+<Note>
+We recommend always using the latest stable version of the Rive iOS Runtime. Older major versions may not receive updates or bug fixes.
+</Note>
+
+For minimum supported platform versions, see [Package.swift](https://github.com/rive-app/rive-ios/blob/main/Package.swift).

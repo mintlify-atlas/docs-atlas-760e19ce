@@ -1,0 +1,282 @@
+---
+title: Linear Animations
+description: Learn how to play and control linear animations with RiveLinearAnimationInstance
+---
+
+Linear animations are timeline-based animations created in the Rive editor. They play from a start point to an end point and can loop, ping-pong, or play once.
+
+## Overview
+
+The `RiveLinearAnimationInstance` class represents a playable instance of a linear animation. It provides fine-grained control over playback, timing, direction, and loop modes.
+
+## Creating Animation Instances
+
+### From RiveArtboard
+
+```swift
+do {
+    let file = try RiveFile(name: "truck")
+    let artboard = try file.artboard()
+    
+    // Get animation by name
+    let animation = try artboard.animation(fromName: "idle")
+    
+    // Get animation by index
+    let firstAnimation = try artboard.animation(from: 0)
+    
+    // List available animations
+    let names = artboard.animationNames()
+    print("Available animations: \(names)")
+} catch {
+    print("Error loading animation: \(error)")
+}
+```
+
+### Using RiveModel
+
+```swift
+do {
+    let model = try RiveModel(fileName: "truck")
+    
+    // Set animation by name
+    try model.setAnimation("idle")
+    
+    // Set animation by index (defaults to 0)
+    try model.setAnimation()
+    
+    // Access the animation instance
+    let animation = model.animation
+} catch {
+    print("Error setting animation: \(error)")
+}
+```
+
+### Using RiveViewModel
+
+```swift
+// Create with specific animation
+let viewModel = RiveViewModel(
+    fileName: "truck",
+    animationName: "drive"
+)
+
+// Or load with auto-play
+let autoPlayViewModel = RiveViewModel(
+    fileName: "halloween",
+    autoPlay: true
+)
+```
+
+## Playback Control
+
+### Basic Playback
+
+```swift
+let animation = try artboard.animation(fromName: "idle")
+
+// Advance animation by elapsed time (in seconds)
+let deltaTime = 1.0 / 60.0 // 60 FPS
+let didLoop = animation.advance(by: deltaTime)
+
+if didLoop {
+    print("Animation completed a loop")
+}
+```
+
+### Time Control
+
+```swift
+// Get current time
+let currentTime = animation.time()
+
+// Set specific time
+animation.setTime(2.5) // Jump to 2.5 seconds
+
+// Get end time
+let endTime = animation.endTime()
+print("Animation ends at: \(endTime)s")
+```
+
+### Check Animation Status
+
+```swift
+// Check if animation has ended
+if animation.hasEnded() {
+    print("Animation finished")
+}
+
+// Check if animation looped in the last frame
+if animation.didLoop() {
+    print("Animation just looped")
+}
+```
+
+## Loop Modes
+
+Control how animations repeat:
+
+```swift
+// Get current loop mode
+let currentLoop = animation.loop()
+
+// Set loop mode
+animation.loop(RiveLoop.oneShot.rawValue)  // Play once
+animation.loop(RiveLoop.loop.rawValue)      // Loop continuously
+animation.loop(RiveLoop.pingPong.rawValue)  // Ping-pong back and forth
+animation.loop(RiveLoop.autoLoop.rawValue)  // Use editor settings
+```
+
+### Loop Mode Options
+
+| Mode | Description |
+|------|-------------|
+| `oneShot` | Play animation once and stop |
+| `loop` | Loop animation continuously from start to end |
+| `pingPong` | Play forward, then backward, repeatedly |
+| `autoLoop` | Use the loop mode configured in the Rive editor |
+
+## Direction
+
+Control animation direction:
+
+```swift
+// Get current direction
+let currentDirection = animation.direction()
+
+// Set direction
+animation.direction(RiveDirection.forwards.rawValue)   // Play forwards
+animation.direction(RiveDirection.backwards.rawValue)  // Play backwards
+animation.direction(RiveDirection.autoDirection.rawValue) // Use editor settings
+```
+
+## Timing Information
+
+Access detailed timing data:
+
+```swift
+let animation = try artboard.animation(fromName: "walk")
+
+// Frame rate
+let fps = animation.fps()
+print("Animation FPS: \(fps)")
+
+// Work area (in frames)
+let workStart = animation.workStart()
+let workEnd = animation.workEnd()
+print("Work area: frame \(workStart) to \(workEnd)")
+
+// Duration
+let duration = animation.duration() // In frames
+let effectiveDuration = animation.effectiveDuration() // In frames
+let effectiveDurationSeconds = animation.effectiveDurationInSeconds()
+
+print("Duration: \(effectiveDurationSeconds)s")
+```
+
+## Animation Name
+
+```swift
+let name = animation.name()
+print("Playing animation: \(name)")
+```
+
+## Complete Example
+
+### Simple Animation Playback
+
+```swift
+import UIKit
+import RiveRuntime
+
+class SimpleAnimationViewController: UIViewController {
+    var viewModel = RiveViewModel(fileName: "truck")
+    
+    override func viewWillAppear(_ animated: Bool) {
+        let riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+}
+```
+
+### SwiftUI Simple Animation
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct SimpleAnimationView: View {
+    @StateObject private var riveViewModel = RiveViewModel(
+        fileName: "halloween",
+        autoPlay: false
+    )
+    
+    var body: some View {
+        riveViewModel.view()
+    }
+}
+```
+
+### Multiple Animations
+
+```swift
+class MultipleAnimationsController: UIViewController {
+    var rSquareGoAround = RiveViewModel(
+        fileName: "artboard_animations",
+        animationName: "goaround",
+        artboardName: "Square"
+    )
+    
+    var rSquareRollAround = RiveViewModel(
+        fileName: "artboard_animations",
+        animationName: "rollaround",
+        artboardName: "Square"
+    )
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // Configure views...
+    }
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use RiveViewModel for automatic playback">
+    For most use cases, `RiveViewModel` handles animation advancement and rendering automatically.
+    
+    ```swift
+    let viewModel = RiveViewModel(
+        fileName: "animation",
+        autoPlay: true
+    )
+    ```
+  </Accordion>
+  
+  <Accordion title="Manual advancement for custom timing">
+    When you need precise control over animation timing, create animation instances directly and call `advance(by:)` manually.
+    
+    ```swift
+    let animation = try artboard.animation(fromName: "custom")
+    animation.advance(by: customDeltaTime)
+    ```
+  </Accordion>
+  
+  <Accordion title="Respect the didLoop return value">
+    The `advance(by:)` method returns `true` when an animation completes a loop. Use this to trigger events or state changes.
+    
+    ```swift
+    if animation.advance(by: deltaTime) {
+        // Animation looped - trigger next action
+        loadNextAnimation()
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+- [State Machines](/concepts/state-machines) - For interactive animations
+- [Artboards](/concepts/artboards) - Access animations from artboards
+- [RiveViewModel](/api/rive-view-model) - High-level animation control

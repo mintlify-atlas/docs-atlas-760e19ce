@@ -1,0 +1,271 @@
+---
+title: Data Binding
+description: Learn how to use Rive's data binding feature to connect view model data to your animations
+---
+
+Data binding enables you to connect dynamic data to your Rive animations through view models. This powerful feature allows you to create data-driven animations that respond to your application's state.
+
+## Overview
+
+The Rive iOS Runtime provides an experimental data binding API that allows you to:
+- Create view model instances from your Rive files
+- Bind data to artboards and state machines
+- Update properties dynamically
+- Observe property changes through streams
+
+## Basic Usage
+
+### Auto-Binding with RiveModel
+
+The simplest way to use data binding is through auto-binding:
+
+```swift
+import RiveRuntime
+
+class MyViewModel {
+    let riveModel: RiveModel
+    var viewModelInstance: RiveDataBindingViewModel.Instance?
+    
+    init() {
+        riveModel = try! RiveModel(fileName: "my_file")
+        
+        // Enable auto-binding
+        riveModel.enableAutoBind { [weak self] instance in
+            self?.viewModelInstance = instance
+        }
+        
+        // Set artboard and state machine
+        try? riveModel.setArtboard()
+        try? riveModel.setStateMachine()
+    }
+}
+```
+
+Auto-binding automatically creates and binds the default view model instance when the artboard or state machine changes.
+
+### Manual Data Binding
+
+For more control, you can manually create and bind view model instances using the experimental API:
+
+```swift
+import RiveRuntime
+
+@_spi(RiveExperimental)
+import RiveRuntime
+
+class AdvancedViewModel {
+    let file: File
+    var viewModelInstance: ViewModelInstance?
+    
+    func setupDataBinding() async {
+        // Create a view model instance
+        let artboard = try! file.artboard()
+        viewModelInstance = ViewModelInstance(
+            source: .viewModelDefault(from: .artboardDefault(artboard)),
+            from: file,
+            dependencies: dependencies
+        )
+        
+        // Bind to artboard and state machine
+        artboard.bind(viewModelInstance: viewModelInstance!)
+        stateMachine.bind(viewModelInstance: viewModelInstance!)
+    }
+}
+```
+
+## Working with Properties
+
+### Property Types
+
+View model instances support multiple property types:
+
+- `StringProperty` - String values
+- `NumberProperty` - Float values
+- `BoolProperty` - Boolean values
+- `ColorProperty` - Color values
+- `EnumProperty` - Enum case names as strings
+- `TriggerProperty` - One-time events
+- `ImageProperty` - Image assets
+- `ArtboardProperty` - Artboard references
+- `ViewModelInstanceProperty` - Nested view models
+- `ListProperty` - Lists of view model instances
+
+### Reading Property Values
+
+```swift
+@_spi(RiveExperimental)
+import RiveRuntime
+
+// Define properties using paths
+let nameProperty = StringProperty(path: "userName")
+let scoreProperty = NumberProperty(path: "score")
+let isActiveProperty = BoolProperty(path: "isActive")
+
+// Read values asynchronously
+let name = try await viewModelInstance.value(of: nameProperty)
+let score = try await viewModelInstance.value(of: scoreProperty)
+let isActive = try await viewModelInstance.value(of: isActiveProperty)
+
+print("Name: \(name), Score: \(score), Active: \(isActive)")
+```
+
+### Setting Property Values
+
+```swift
+@_spi(RiveExperimental)
+import RiveRuntime
+
+// Update property values
+viewModelInstance.setValue(of: nameProperty, to: "Alice")
+viewModelInstance.setValue(of: scoreProperty, to: 100.0)
+viewModelInstance.setValue(of: isActiveProperty, to: true)
+
+// Update color properties
+let colorProperty = ColorProperty(path: "themeColor")
+viewModelInstance.setValue(of: colorProperty, to: Color(red: 1.0, green: 0.5, blue: 0.0, alpha: 1.0))
+```
+
+### Observing Property Changes
+
+Use value streams to observe property changes:
+
+```swift
+@_spi(RiveExperimental)
+import RiveRuntime
+
+Task {
+    let stream = viewModelInstance.valueStream(of: scoreProperty)
+    for try await value in stream {
+        print("Score changed to: \(value)")
+    }
+}
+```
+
+### Firing Triggers
+
+```swift
+@_spi(RiveExperimental)
+import RiveRuntime
+
+let triggerProperty = TriggerProperty(path: "onComplete")
+viewModelInstance.fire(trigger: triggerProperty)
+```
+
+## Working with Nested View Models
+
+```swift
+@_spi(RiveExperimental)
+import RiveRuntime
+
+let nestedProperty = ViewModelInstanceProperty(path: "userProfile")
+let nestedInstance = viewModelInstance.value(of: nestedProperty)
+
+// Access nested properties
+let emailProperty = StringProperty(path: "email")
+nestedInstance.setValue(of: emailProperty, to: "alice@example.com")
+```
+
+## Working with Lists
+
+```swift
+@_spi(RiveExperimental)
+import RiveRuntime
+
+let listProperty = ListProperty(path: "items")
+
+// Get list size
+let size = try await viewModelInstance.size(of: listProperty)
+
+// Access items
+let firstItem = viewModelInstance.value(of: listProperty, at: 0)
+
+// Add items
+let newItem = ViewModelInstance(/* ... */)
+viewModelInstance.appendInstance(newItem, to: listProperty)
+
+// Remove items
+viewModelInstance.removeInstance(at: 0, from: listProperty)
+```
+
+## Complete Example
+
+Here's a complete example from the Rive iOS examples:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+private class DataBindingViewModel: RiveViewModel {
+    private(set) var dataBindingInstance: RiveDataBindingViewModel.Instance?
+    
+    var stringProperty: RiveDataBindingViewModel.Instance.StringProperty? {
+        return dataBindingInstance?.stringProperty(fromPath: "String")
+    }
+    
+    var numberProperty: RiveDataBindingViewModel.Instance.NumberProperty? {
+        return dataBindingInstance?.numberProperty(fromPath: "Number")
+    }
+    
+    init(fileName: String) {
+        super.init(fileName: fileName)
+        
+        riveModel?.enableAutoBind { [weak self] instance in
+            guard let self else { return }
+            dataBindingInstance = instance
+            
+            // Add listener for property changes
+            stringProperty?.addListener { [weak self] value in
+                guard let self, let stringProperty else { return }
+                print("Updated value: \(stringProperty.value)")
+            }
+        }
+    }
+}
+
+struct DataBindingView: View {
+    @StateObject private var riveViewModel = DataBindingViewModel(fileName: "data_binding_test")
+    
+    var body: some View {
+        VStack {
+            riveViewModel.view()
+            
+            Button("Update Values") {
+                riveViewModel.stringProperty?.value = "Hello"
+                riveViewModel.numberProperty?.value = 42.0
+                riveViewModel.riveView?.advance(delta: 0)
+            }
+        }
+    }
+}
+```
+
+## Data Binding Modes
+
+When working with state machines, you can control data binding behavior:
+
+```swift
+@_spi(RiveExperimental)
+import RiveRuntime
+
+// Automatic binding (default)
+stateMachine.configure(dataBind: .auto)
+
+// Explicit instance binding
+stateMachine.configure(dataBind: .instance(viewModelInstance))
+
+// No data binding
+stateMachine.configure(dataBind: .none)
+```
+
+## Best Practices
+
+1. **Strong References**: Always maintain a strong reference to view model instances you need to update
+2. **Property Caching**: Properties are cached when created, so you can safely recreate them from the same instance
+3. **Manual Advance**: When not playing, call `riveView?.advance(delta: 0)` after updating properties to refresh the view
+4. **Error Handling**: Always handle potential errors when reading property values
+5. **Stream Cleanup**: Value streams continue until cancelled or the instance is deallocated
+
+## See Also
+
+- [Rive Text](/advanced/rive-text) - Working with dynamic text
+- [Rive Events](/advanced/rive-events) - Event system integration

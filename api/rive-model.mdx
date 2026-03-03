@@ -1,0 +1,455 @@
+---
+title: RiveModel
+description: Represents a Rive file and provides access to artboards, animations, and state machines.
+---
+
+`RiveModel` represents a Rive file and provides methods to access and configure artboards, animations, and state machines. It serves as the data layer between a Rive file and the view that renders it.
+
+## Initializers
+
+### Initialize with RiveFile
+
+```swift
+public init(riveFile: RiveFile)
+```
+
+<ParamField path="riveFile" type="RiveFile" required>
+  An already loaded RiveFile instance
+</ParamField>
+
+**Example:**
+
+```swift
+let riveFile = try RiveFile(name: "hero")
+let model = RiveModel(riveFile: riveFile)
+```
+
+### Initialize with File Name
+
+```swift
+public init(
+    fileName: String,
+    extension: String = ".riv",
+    in bundle: Bundle = .main,
+    loadCdn: Bool = true,
+    customLoader: LoadAsset? = nil
+) throws
+```
+
+<ParamField path="fileName" type="String" required>
+  The name of the Rive file (without extension)
+</ParamField>
+
+<ParamField path="extension" type="String" default=".riv">
+  The file extension
+</ParamField>
+
+<ParamField path="bundle" type="Bundle" default=".main">
+  The bundle containing the Rive file
+</ParamField>
+
+<ParamField path="loadCdn" type="Bool" default="true">
+  Whether to load assets from CDN
+</ParamField>
+
+<ParamField path="customLoader" type="LoadAsset?">
+  Custom asset loader for loading external assets
+</ParamField>
+
+**Example:**
+
+```swift
+let model = try RiveModel(fileName: "hero")
+```
+
+### Initialize with Web URL
+
+```swift
+public init(
+    webURL: String,
+    delegate: RiveFileDelegate,
+    loadCdn: Bool
+)
+```
+
+<ParamField path="webURL" type="String" required>
+  The URL of the Rive file to load from the web
+</ParamField>
+
+<ParamField path="delegate" type="RiveFileDelegate" required>
+  Delegate to receive callbacks when the file loads or errors
+</ParamField>
+
+<ParamField path="loadCdn" type="Bool" required>
+  Whether to load assets from CDN
+</ParamField>
+
+**Example:**
+
+```swift
+class MyDelegate: RiveFileDelegate {
+    func riveFileDidLoad(_ riveFile: RiveFile) throws {
+        print("File loaded")
+    }
+    
+    func riveFileDidError(_ error: any Error) {
+        print("Error: \(error)")
+    }
+}
+
+let delegate = MyDelegate()
+let model = RiveModel(webURL: "https://example.com/file.riv", delegate: delegate, loadCdn: true)
+```
+
+## Properties
+
+### stateMachine
+
+```swift
+public internal(set) var stateMachine: RiveStateMachineInstance?
+```
+
+The currently active state machine instance. Read-only.
+
+### animation
+
+```swift
+public internal(set) var animation: RiveLinearAnimationInstance?
+```
+
+The currently active animation instance. Read-only.
+
+### artboard
+
+```swift
+public private(set) var artboard: RiveArtboard!
+```
+
+The currently active artboard. Read-only.
+
+### riveFile
+
+```swift
+public private(set) var riveFile: RiveFile
+```
+
+The underlying RiveFile instance. Read-only.
+
+### volume
+
+```swift
+open var volume: Float
+```
+
+The volume of the current artboard, if available. Defaults to `1.0`. Setting this value will update the artboard's volume if an artboard is configured.
+
+**Example:**
+
+```swift
+model.volume = 0.5 // Set volume to 50%
+```
+
+## Methods
+
+### setArtboard (by name)
+
+```swift
+open func setArtboard(_ name: String) throws
+```
+
+Sets a new Artboard and makes the current StateMachine and Animation nil.
+
+<ParamField path="name" type="String" required>
+  The name of the artboard to set
+</ParamField>
+
+**Throws:** `RiveModelError.invalidArtboard` if the artboard name is not found.
+
+**Example:**
+
+```swift
+try model.setArtboard("Character")
+```
+
+### setArtboard (by index or default)
+
+```swift
+open func setArtboard(_ index: Int? = nil) throws
+```
+
+Sets a new Artboard and makes the current StateMachine and Animation nil.
+
+<ParamField path="index" type="Int?">
+  The index of the artboard to set. Pass `nil` to use the default artboard
+</ParamField>
+
+**Throws:** `RiveModelError.invalidArtboard` if the artboard is not found.
+
+**Example:**
+
+```swift
+// Use default artboard
+try model.setArtboard()
+
+// Use artboard at index 0
+try model.setArtboard(0)
+```
+
+### setStateMachine (by name)
+
+```swift
+open func setStateMachine(_ name: String) throws
+```
+
+Sets the active state machine by name.
+
+<ParamField path="name" type="String" required>
+  The name of the state machine to set
+</ParamField>
+
+**Throws:** `RiveModelError.invalidStateMachine` if the state machine name is not found.
+
+**Example:**
+
+```swift
+try model.setStateMachine("State Machine 1")
+```
+
+### setStateMachine (by index or default)
+
+```swift
+open func setStateMachine(_ index: Int? = nil) throws
+```
+
+Sets the active state machine by index or uses the default.
+
+<ParamField path="index" type="Int?">
+  The index of the state machine to set. Pass `nil` to use the default state machine from the artboard, or index 0 as a fallback
+</ParamField>
+
+**Throws:** `RiveModelError.invalidStateMachine` if the state machine is not found.
+
+**Example:**
+
+```swift
+// Use default state machine
+try model.setStateMachine()
+
+// Use state machine at index 0
+try model.setStateMachine(0)
+```
+
+### setAnimation (by name)
+
+```swift
+open func setAnimation(_ name: String) throws
+```
+
+Sets the active animation by name.
+
+<ParamField path="name" type="String" required>
+  The name of the animation to set
+</ParamField>
+
+**Throws:** `RiveModelError.invalidAnimation` if the animation name is not found.
+
+**Example:**
+
+```swift
+try model.setAnimation("idle")
+```
+
+### setAnimation (by index or default)
+
+```swift
+open func setAnimation(_ index: Int? = nil) throws
+```
+
+Sets the active animation by index. Defaults to index 0 if no index is provided.
+
+<ParamField path="index" type="Int?">
+  The index of the animation to set. Defaults to 0 if not provided
+</ParamField>
+
+**Throws:** `RiveModelError.invalidAnimation` if the animation is not found.
+
+**Example:**
+
+```swift
+// Use animation at index 0
+try model.setAnimation()
+
+// Use animation at index 1
+try model.setAnimation(1)
+```
+
+### enableAutoBind
+
+```swift
+open func enableAutoBind(_ callback: @escaping AutoBindCallback)
+```
+
+Automatically binds the default instance of the current artboard when the artboard and/or state machine changes, including when it is first set. The callback will be called with the instance that has been bound. A strong reference to the instance must be made in order to update properties and utilize observability.
+
+<ParamField path="callback" type="AutoBindCallback" required>
+  The callback to be called when a `RiveDataBindingViewModel.Instance` is bound to the current artboard and/or state machine
+</ParamField>
+
+**Example:**
+
+```swift
+model.enableAutoBind { instance in
+    // Store strong reference
+    self.viewModelInstance = instance
+    
+    // Update properties
+    instance.propertyController.set("username", value: "John")
+}
+```
+
+### disableAutoBind
+
+```swift
+open func disableAutoBind()
+```
+
+Disables the auto-binding feature enabled by `enableAutoBind`.
+
+**Example:**
+
+```swift
+model.disableAutoBind()
+```
+
+## Type Aliases
+
+### AutoBindCallback
+
+```swift
+public typealias AutoBindCallback = (RiveDataBindingViewModel.Instance) -> Void
+```
+
+Callback type for auto-binding data binding view model instances.
+
+## Errors
+
+### RiveModelError
+
+```swift
+enum RiveModelError: Error {
+    case invalidStateMachine(_ message: String)
+    case invalidAnimation(_ message: String)
+    case invalidArtboard(_ message: String)
+}
+```
+
+Errors that can be thrown by RiveModel methods.
+
+## Usage Examples
+
+### Basic Model Setup
+
+```swift
+import RiveRuntime
+
+// Create a model
+let model = try RiveModel(fileName: "hero")
+
+// Set artboard and animation
+try model.setArtboard("MainArtboard")
+try model.setAnimation("idle")
+```
+
+### Working with State Machines
+
+```swift
+import RiveRuntime
+
+let model = try RiveModel(fileName: "button")
+
+// Set artboard and state machine
+try model.setArtboard()
+try model.setStateMachine("State Machine 1")
+
+// Access state machine inputs
+if let stateMachine = model.stateMachine {
+    let trigger = stateMachine.getTrigger("Press")
+    trigger.fire()
+}
+```
+
+### Loading from Web
+
+```swift
+import RiveRuntime
+
+class MyController: RiveFileDelegate {
+    var model: RiveModel?
+    
+    func loadAnimation() {
+        model = RiveModel(
+            webURL: "https://example.com/animation.riv",
+            delegate: self,
+            loadCdn: true
+        )
+    }
+    
+    func riveFileDidLoad(_ riveFile: RiveFile) throws {
+        print("File loaded successfully")
+        try model?.setArtboard()
+        try model?.setAnimation()
+    }
+    
+    func riveFileDidError(_ error: any Error) {
+        print("Error loading file: \(error)")
+    }
+}
+```
+
+### Volume Control
+
+```swift
+import RiveRuntime
+
+let model = try RiveModel(fileName: "audio_demo")
+try model.setArtboard()
+
+// Set volume to 50%
+model.volume = 0.5
+
+// Mute
+model.volume = 0.0
+
+// Full volume
+model.volume = 1.0
+```
+
+### Data Binding
+
+```swift
+import RiveRuntime
+
+class MyViewController: UIViewController {
+    var model: RiveModel?
+    var viewModelInstance: RiveDataBindingViewModel.Instance?
+    
+    func setupModel() {
+        model = try? RiveModel(fileName: "data_binding_demo")
+        
+        model?.enableAutoBind { [weak self] instance in
+            self?.viewModelInstance = instance
+            
+            // Set initial values
+            instance.propertyController.set("username", value: "Guest")
+            instance.propertyController.set("score", value: 0)
+        }
+        
+        try? model?.setArtboard()
+        try? model?.setStateMachine()
+    }
+    
+    func updateScore(_ newScore: Int) {
+        viewModelInstance?.propertyController.set("score", value: newScore)
+    }
+}
+```

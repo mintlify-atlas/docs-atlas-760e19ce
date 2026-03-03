@@ -1,0 +1,475 @@
+---
+title: RiveView
+description: A UIView/NSView subclass that renders Rive animations and handles touch interactions with state machines.
+---
+
+`RiveView` is a native view that renders Rive animations. It handles the render loop, touch interactions, and provides low-level control over playback.
+
+<Note>
+For most use cases, you should use `RiveViewModel` which provides a higher-level interface. Use `RiveView` directly when you need fine-grained control over rendering and playback.
+</Note>
+
+## Initializers
+
+### Default Initializer
+
+```swift
+public init()
+```
+
+Minimalist constructor. Call `setModel()` to configure the `RiveView` later.
+
+**Example:**
+
+```swift
+let riveView = RiveView()
+```
+
+### Initialize with Model
+
+```swift
+public convenience init(model: RiveModel, autoPlay: Bool = true)
+```
+
+<ParamField path="model" type="RiveModel" required>
+  The RiveModel instance containing the Rive file data
+</ParamField>
+
+<ParamField path="autoPlay" type="Bool" default="true">
+  Whether the animation or state machine should start playing automatically
+</ParamField>
+
+**Example:**
+
+```swift
+let model = try RiveModel(fileName: "hero")
+let riveView = RiveView(model: model, autoPlay: true)
+```
+
+## Properties
+
+### isPlaying
+
+```swift
+internal private(set) var isPlaying: Bool
+```
+
+Returns `true` if the animation or state machine is currently playing. Read-only.
+
+### fit
+
+```swift
+internal var fit: RiveFit
+```
+
+How the Rive content should fit within the view bounds. Defaults to `.contain`.
+
+### alignment
+
+```swift
+internal var alignment: RiveAlignment
+```
+
+How the Rive content should align within the view bounds. Defaults to `.center`.
+
+### layoutScaleFactor
+
+```swift
+internal var layoutScaleFactor: Double
+```
+
+The scale factor to apply when using the `layout` fit. By default, this value is `-1`, where Rive will determine the correct scale for your device. To override this default behavior, set this value to a value greater than 0.
+
+<Note>If the scale factor is less than or equal to 0, nothing will be drawn.</Note>
+
+### forwardsListenerEvents
+
+```swift
+internal var forwardsListenerEvents: Bool
+```
+
+Sets whether the Rive view should forward Rive listener touch/click events to any next responders. When `true`, touch/click events will be forwarded to any next responder(s). When `false`, only the Rive view will handle touch/click events. Defaults to `false`.
+
+<Note>On iOS, this is handled separately from `isExclusiveTouch`.</Note>
+
+### offscreenBehavior
+
+```swift
+public var offscreenBehavior: OffscreenBehavior
+```
+
+Sets whether the view should continue drawing while offscreen. Options:
+- `.playAndDraw` - Continue playing and drawing when offscreen
+- `.playAndNoDraw` - Continue playing but don't draw when offscreen
+
+Defaults to `.playAndNoDraw`.
+
+### drawOptimization
+
+```swift
+public var drawOptimization: DrawOptimization
+```
+
+Sets whether the view should always draw, or skip drawing if the artboard is unchanged. Options:
+- `.alwaysDraw` - Draw on every frame
+- `.drawOnChanged` - Only draw when the artboard has changed
+
+Defaults to `.drawOnChanged`.
+
+### playerDelegate
+
+```swift
+public weak var playerDelegate: RivePlayerDelegate?
+```
+
+Delegate that receives playback events (play, pause, stop, loop, advance).
+
+### stateMachineDelegate
+
+```swift
+public weak var stateMachineDelegate: RiveStateMachineDelegate?
+```
+
+Delegate that receives state machine events (input changes, state changes, touch events, Rive events).
+
+### showFPS
+
+```swift
+public var showFPS: Bool
+```
+
+Shows or hides the FPS counter on this RiveView.
+
+### showFPSCounters
+
+```swift
+public static var showFPSCounters: Bool
+```
+
+Shows or hides the FPS counters on all RiveViews.
+
+## Methods
+
+### setModel
+
+```swift
+open func setModel(_ model: RiveModel, autoPlay: Bool = true) throws
+```
+
+This resets the view with the new model. Useful when the `RiveView` was initialized without one.
+
+<ParamField path="model" type="RiveModel" required>
+  The RiveModel instance to set
+</ParamField>
+
+<ParamField path="autoPlay" type="Bool" default="true">
+  Whether to start playing automatically
+</ParamField>
+
+**Example:**
+
+```swift
+let model = try RiveModel(fileName: "hero")
+try riveView.setModel(model, autoPlay: true)
+```
+
+### setPreferredFramesPerSecond
+
+```swift
+open func setPreferredFramesPerSecond(preferredFramesPerSecond: Int)
+```
+
+Hints to underlying CADisplayLink the preferred FPS to run at.
+
+<ParamField path="preferredFramesPerSecond" type="Int" required>
+  Integer number of frames per second to set preferred FPS at
+</ParamField>
+
+**Example:**
+
+```swift
+riveView.setPreferredFramesPerSecond(preferredFramesPerSecond: 60)
+```
+
+### setPreferredFrameRateRange
+
+```swift
+@available(iOS 15, macOS 14, tvOS 15, visionOS 1, *)
+open func setPreferredFrameRateRange(preferredFrameRateRange: CAFrameRateRange)
+```
+
+Hints to underlying CADisplayLink the preferred frame rate range.
+
+<ParamField path="preferredFrameRateRange" type="CAFrameRateRange" required>
+  Frame rate range to set
+</ParamField>
+
+**Example:**
+
+```swift
+if #available(iOS 15.0, *) {
+    let range = CAFrameRateRange(minimum: 60, maximum: 120, preferred: 120)
+    riveView.setPreferredFrameRateRange(preferredFrameRateRange: range)
+}
+```
+
+### play
+
+```swift
+internal func play()
+```
+
+Starts the render loop.
+
+**Example:**
+
+```swift
+riveView.play()
+```
+
+### pause
+
+```swift
+internal func pause()
+```
+
+Asks the render loop to stop on the next cycle.
+
+**Example:**
+
+```swift
+riveView.pause()
+```
+
+### stop
+
+```swift
+internal func stop()
+```
+
+Asks the render loop to stop on the next cycle and resets the animation.
+
+**Example:**
+
+```swift
+riveView.stop()
+```
+
+### reset
+
+```swift
+internal func reset()
+```
+
+Resets the animation to its initial state.
+
+**Example:**
+
+```swift
+riveView.reset()
+```
+
+### advance
+
+```swift
+open func advance(delta: Double)
+```
+
+Advances the Artboard and either a StateMachine or an Animation. Also fires any remaining events in the queue.
+
+<ParamField path="delta" type="Double" required>
+  Elapsed seconds since the last advance
+</ParamField>
+
+**Example:**
+
+```swift
+riveView.advance(delta: 0.016) // ~60fps
+```
+
+### drawRive
+
+```swift
+open func drawRive(_ rect: CGRect, size: CGSize)
+```
+
+This is called in the middle of drawRect. Override this method to implement custom draw logic.
+
+<ParamField path="rect" type="CGRect" required>
+  The rectangle to draw in
+</ParamField>
+
+<ParamField path="size" type="CGSize" required>
+  The size of the drawable area
+</ParamField>
+
+## Enums
+
+### OffscreenBehavior
+
+```swift
+public enum OffscreenBehavior {
+    case playAndDraw
+    case playAndNoDraw
+}
+```
+
+Defines how the view behaves when offscreen.
+
+### DrawOptimization
+
+```swift
+public enum DrawOptimization {
+    case alwaysDraw
+    case drawOnChanged
+}
+```
+
+Defines the drawing optimization strategy.
+
+### RiveTouchEvent
+
+```swift
+public enum RiveTouchEvent: Int {
+    case began
+    case moved
+    case ended
+    case cancelled
+    case exited
+}
+```
+
+An enum of possible touch or mouse events when interacting with an animation.
+
+## Protocols
+
+### RiveStateMachineDelegate
+
+```swift
+public protocol RiveStateMachineDelegate: AnyObject {
+    @objc optional func touchBegan(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint)
+    @objc optional func touchMoved(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint)
+    @objc optional func touchEnded(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint)
+    @objc optional func touchCancelled(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint)
+    @objc optional func touchExited(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint)
+    @objc optional func stateMachine(_ stateMachine: RiveStateMachineInstance, receivedInput input: StateMachineInput)
+    @objc optional func stateMachine(_ stateMachine: RiveStateMachineInstance, didChangeState stateName: String)
+    @objc optional func stateMachine(_ stateMachine: RiveStateMachineInstance, didReceiveHitResult hitResult: RiveHitResult, from event: RiveTouchEvent)
+    @objc optional func onRiveEventReceived(onRiveEvent riveEvent: RiveEvent)
+}
+```
+
+Delegate protocol for receiving state machine events.
+
+### RivePlayerDelegate
+
+```swift
+public protocol RivePlayerDelegate: AnyObject {
+    func player(playedWithModel riveModel: RiveModel?)
+    func player(pausedWithModel riveModel: RiveModel?)
+    func player(loopedWithModel riveModel: RiveModel?, type: Int)
+    func player(stoppedWithModel riveModel: RiveModel?)
+    func player(didAdvanceby seconds: Double, riveModel: RiveModel?)
+}
+```
+
+Delegate protocol for receiving player events.
+
+## Usage Examples
+
+### Basic Usage
+
+```swift
+import UIKit
+import RiveRuntime
+
+class ViewController: UIViewController {
+    let riveView = RiveView()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        view.addSubview(riveView)
+        riveView.frame = view.bounds
+        
+        let model = try! RiveModel(fileName: "hero")
+        try! riveView.setModel(model, autoPlay: true)
+    }
+}
+```
+
+### With Delegates
+
+```swift
+import UIKit
+import RiveRuntime
+
+class ViewController: UIViewController, RivePlayerDelegate, RiveStateMachineDelegate {
+    let riveView = RiveView()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        riveView.playerDelegate = self
+        riveView.stateMachineDelegate = self
+        
+        view.addSubview(riveView)
+        riveView.frame = view.bounds
+        
+        let model = try! RiveModel(fileName: "hero")
+        try! riveView.setModel(model)
+    }
+    
+    func player(playedWithModel riveModel: RiveModel?) {
+        print("Animation started")
+    }
+    
+    func player(pausedWithModel riveModel: RiveModel?) {
+        print("Animation paused")
+    }
+    
+    func player(loopedWithModel riveModel: RiveModel?, type: Int) {
+        print("Animation looped")
+    }
+    
+    func player(stoppedWithModel riveModel: RiveModel?) {
+        print("Animation stopped")
+    }
+    
+    func player(didAdvanceby seconds: Double, riveModel: RiveModel?) {
+        // Called on every frame
+    }
+    
+    func stateMachine(_ stateMachine: RiveStateMachineInstance, didChangeState stateName: String) {
+        print("State changed to: \(stateName)")
+    }
+    
+    func onRiveEventReceived(onRiveEvent riveEvent: RiveEvent) {
+        print("Rive event received: \(riveEvent.name())")
+    }
+}
+```
+
+### Custom Drawing Optimization
+
+```swift
+import UIKit
+import RiveRuntime
+
+class ViewController: UIViewController {
+    let riveView = RiveView()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        riveView.drawOptimization = .alwaysDraw
+        riveView.offscreenBehavior = .playAndNoDraw
+        
+        view.addSubview(riveView)
+        riveView.frame = view.bounds
+        
+        let model = try! RiveModel(fileName: "hero")
+        try! riveView.setModel(model)
+    }
+}
+```

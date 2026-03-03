@@ -1,0 +1,250 @@
+---
+title: "RiveDataBindingViewModelInstance"
+description: "API reference for the RiveDataBindingViewModelInstance class in the Rive iOS Runtime SDK"
+---
+
+## Overview
+
+An object that represents an instance of a view model, used to update bindings at runtime.
+
+<Note>
+A strong reference to this instance must be maintained if it is being bound to a state machine or artboard, or for observability. If a property is fetched from an instance different to that bound to an artboard or state machine, its value or trigger will not be updated.
+</Note>
+
+## Properties
+
+### name
+
+```objc
+@property(nonatomic, readonly) NSString* name;
+```
+
+The name of the view model instance.
+
+### propertyCount
+
+```objc
+@property(nonatomic, readonly) NSUInteger propertyCount;
+```
+
+The number of all properties in the view model instance.
+
+### properties
+
+```objc
+@property(nonatomic, readonly) NSArray<RiveDataBindingViewModelInstancePropertyData*>* properties;
+```
+
+An array of property data of all properties in the view model instance.
+
+## Methods
+
+### propertyFromPath:
+
+```objc
+- (nullable RiveDataBindingViewModelInstanceProperty*)propertyFromPath:(NSString*)path;
+```
+
+Gets a property from the view model instance. This property is the superclass of all other property types.
+
+**Parameters:**
+- `path` - The path to the property.
+
+**Returns:** The property if it exists at the supplied path, otherwise `nil`.
+
+<Note>
+Unlike a `RiveViewModel.Instance`, a strong reference to this type does not have to be made. If the property exists, the underlying property will be cached, and calling this function again with the same path is guaranteed to return the same object.
+</Note>
+
+### stringPropertyFromPath:
+
+```objc
+- (nullable RiveDataBindingViewModelInstanceStringProperty*)stringPropertyFromPath:(NSString*)path;
+```
+
+Gets a string property in the view model instance.
+
+**Parameters:**
+- `path` - The path to the string property.
+
+**Returns:** The property if it exists at the supplied path, otherwise `nil`.
+
+<Note>
+Unlike a `RiveViewModel.Instance`, a strong reference to this type does not have to be made. If the property exists, the underlying property will be cached, and calling this function again with the same path is guaranteed to return the same object.
+</Note>
+
+### numberPropertyFromPath:
+
+```objc
+- (nullable RiveDataBindingViewModelInstanceNumberProperty*)numberPropertyFromPath:(NSString*)path;
+```
+
+Gets a number property in the view model instance.
+
+**Parameters:**
+- `path` - The path to the number property.
+
+**Returns:** The property if it exists at the supplied path, otherwise `nil`.
+
+<Note>
+Unlike a `RiveViewModel.Instance`, a strong reference to this type does not have to be made. If the property exists, the underlying property will be cached, and calling this function again with the same path is guaranteed to return the same object.
+</Note>
+
+### booleanPropertyFromPath:
+
+```objc
+- (nullable RiveDataBindingViewModelInstanceBooleanProperty*)booleanPropertyFromPath:(NSString*)path;
+```
+
+Gets a boolean property in the view model instance.
+
+**Parameters:**
+- `path` - The path to the boolean property.
+
+**Returns:** The property if it exists at the supplied path, otherwise `nil`.
+
+<Note>
+Unlike a `RiveViewModel.Instance`, a strong reference to this type does not have to be made. If the property exists, the underlying property will be cached, and calling this function again with the same path is guaranteed to return the same object.
+</Note>
+
+### colorPropertyFromPath:
+
+```objc
+- (nullable RiveDataBindingViewModelInstanceColorProperty*)colorPropertyFromPath:(NSString*)path;
+```
+
+Gets a color property in the view model instance.
+
+**Parameters:**
+- `path` - The path to the color property.
+
+**Returns:** The property if it exists at the supplied path, otherwise `nil`.
+
+<Note>
+Unlike a `RiveViewModel.Instance`, a strong reference to this type does not have to be made. If the property exists, the underlying property will be cached, and calling this function again with the same path is guaranteed to return the same object.
+</Note>
+
+### enumPropertyFromPath:
+
+```objc
+- (nullable RiveDataBindingViewModelInstanceEnumProperty*)enumPropertyFromPath:(NSString*)path;
+```
+
+Gets an enum property in the view model instance.
+
+**Parameters:**
+- `path` - The path to the enum property.
+
+**Returns:** The property if it exists at the supplied path, otherwise `nil`.
+
+<Note>
+Unlike a `RiveViewModel.Instance`, a strong reference to this type does not have to be made. If the property exists, the underlying property will be cached, and calling this function again with the same path is guaranteed to return the same object.
+</Note>
+
+### viewModelInstancePropertyFromPath:
+
+```objc
+- (nullable RiveDataBindingViewModelInstance*)viewModelInstancePropertyFromPath:(NSString*)path;
+```
+
+Gets a view model property in the view model instance.
+
+**Parameters:**
+- `path` - The path to the view model instance property.
+
+**Returns:** The property if it exists at the supplied path, otherwise `nil`.
+
+<Note>
+Unlike a `RiveViewModel.Instance`, a strong reference to this type does not have to be made. If the property exists, the underlying property will be cached, and calling this function again with the same path is guaranteed to return the same object.
+</Note>
+
+### setViewModelInstancePropertyFromPath:toInstance:
+
+```objc
+- (BOOL)setViewModelInstancePropertyFromPath:(NSString*)path
+                                  toInstance:(RiveDataBindingViewModelInstance*)instance;
+```
+
+Replaces a view model property of the view model instance with another instance.
+
+**Parameters:**
+- `path` - The path to the view model property to replace.
+- `instance` - The instance to replace the view model property at `path` with.
+
+**Returns:** `true` if the view model instance was replaced, otherwise `false`.
+
+### triggerPropertyFromPath:
+
+```objc
+- (nullable RiveDataBindingViewModelInstanceTriggerProperty*)triggerPropertyFromPath:(NSString*)path;
+```
+
+Returns a trigger property in the view model instance.
+
+**Parameters:**
+- `path` - The path to the trigger property.
+
+**Returns:** The property if it exists at the supplied path, otherwise `nil`.
+
+<Note>
+Unlike a `RiveViewModel.Instance`, a strong reference to this type does not have to be made. If the property exists, the underlying property will be cached, and calling this function again with the same path is guaranteed to return the same object.
+</Note>
+
+### imagePropertyFromPath:
+
+```objc
+- (nullable RiveDataBindingViewModelInstanceImageProperty*)imagePropertyFromPath:(NSString*)path;
+```
+
+Gets an image property in the view model instance.
+
+**Parameters:**
+- `path` - The path to the image property.
+
+**Returns:** The property if it exists at the supplied path, otherwise `nil`.
+
+<Note>
+Unlike a `RiveViewModel.Instance`, a strong reference to this type does not have to be made. If the property exists, the underlying property will be cached, and calling this function again with the same path is guaranteed to return the same object.
+</Note>
+
+### listPropertyFromPath:
+
+```objc
+- (nullable RiveDataBindingViewModelInstanceListProperty*)listPropertyFromPath:(NSString*)path;
+```
+
+Gets a list property in the view model instance.
+
+**Parameters:**
+- `path` - The path to the list property.
+
+**Returns:** The property if it exists at the supplied path, otherwise `nil`.
+
+<Note>
+Unlike a `RiveViewModel.Instance`, a strong reference to this type does not have to be made. If the property exists, the underlying property will be cached, and calling this function again with the same path is guaranteed to return the same object.
+</Note>
+
+### artboardPropertyFromPath:
+
+```objc
+- (nullable RiveDataBindingViewModelInstanceArtboardProperty*)artboardPropertyFromPath:(NSString*)path;
+```
+
+Gets an artboard property in the view model instance.
+
+**Parameters:**
+- `path` - The path to the artboard property.
+
+**Returns:** The property if it exists at the supplied path, otherwise `nil`.
+
+<Note>
+Unlike a `RiveViewModel.Instance`, a strong reference to this type does not have to be made. If the property exists, the underlying property will be cached, and calling this function again with the same path is guaranteed to return the same object.
+</Note>
+
+### updateListeners
+
+```objc
+- (void)updateListeners;
+```
+
+Calls all registered property listeners for the properties of the view model instance.

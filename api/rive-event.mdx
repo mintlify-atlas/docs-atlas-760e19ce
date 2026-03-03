@@ -1,0 +1,125 @@
+---
+title: "RiveEvent"
+description: "Classes representing events triggered by Rive animations"
+---
+
+## Overview
+
+Rive events are notifications triggered during animation playback. The SDK provides three event classes: `RiveEvent` (base class), `RiveGeneralEvent`, and `RiveOpenUrlEvent`.
+
+## RiveEvent
+
+The base class for all Rive events.
+
+### Methods
+
+#### name
+```swift
+- (NSString*)name
+```
+Returns the name of the event.
+
+**Returns:** The event name as a string.
+
+#### type
+```swift
+- (NSInteger)type
+```
+Returns the type identifier of the event.
+
+**Returns:** An integer representing the event type.
+
+#### delay
+```swift
+- (float)delay
+```
+Returns the delay in seconds since the event was actually fired. This is applicable when events are fired from timeline animations.
+
+**Returns:** The delay in seconds as a float.
+
+#### properties
+```swift
+- (NSDictionary<NSString*, id>*)properties
+```
+Returns a dictionary of custom properties set on the event.
+
+**Returns:** A dictionary containing custom event properties.
+
+## RiveGeneralEvent
+
+A general-purpose event that inherits from `RiveEvent`. Use this for custom events defined in your Rive animations.
+
+```swift
+@interface RiveGeneralEvent : RiveEvent
+@end
+```
+
+## RiveOpenUrlEvent
+
+A specialized event for opening URLs, commonly used for interactive elements like buttons or links.
+
+### Methods
+
+#### url
+```swift
+- (NSString*)url
+```
+Returns the URL to open.
+
+**Returns:** The URL string.
+
+#### target
+```swift
+- (NSString*)target
+```
+Returns the target value for opening the link (e.g., "_blank", "_self").
+
+**Returns:** The target string.
+
+## Usage
+
+```swift
+// Listen for events from a state machine
+let viewModel = RiveViewModel(fileName: "interactive_animation")
+
+viewModel.setView(riveView) { view in
+    view.stateMachine?.addEventListener { event in
+        if let urlEvent = event as? RiveOpenUrlEvent {
+            print("Open URL: \(urlEvent.url())")
+            print("Target: \(urlEvent.target())")
+            
+            // Open the URL
+            if let url = URL(string: urlEvent.url()) {
+                UIApplication.shared.open(url)
+            }
+        } else if let generalEvent = event as? RiveGeneralEvent {
+            print("General event: \(generalEvent.name())")
+            print("Properties: \(generalEvent.properties())")
+        }
+        
+        // Access common properties
+        print("Event type: \(event.type())")
+        print("Event delay: \(event.delay())")
+    }
+}
+```
+
+## RiveEventReport
+
+An auxiliary class for event reporting.
+
+```swift
+@interface RiveEventReport : NSObject
+- (float)secondsDelay;
+@end
+```
+
+### Methods
+
+#### secondsDelay
+Returns the delay in seconds for the event report.
+
+## Related
+
+- [RiveStateMachineInstance](/api/rive-state-machine-instance) - State machines can trigger events
+- [RiveViewModel](/api/rive-view-model) - Use to set up event listeners

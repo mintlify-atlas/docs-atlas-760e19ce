@@ -1,97 +1,151 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Rive iOS Runtime
+description: Real-time interactive animations for iOS, macOS, tvOS, and visionOS
 ---
 
-## Setting up
+# Rive iOS Runtime
 
-Get your documentation site up and running in minutes.
+Rive is a real-time interactive design and animation tool that helps teams create and run interactive animations anywhere. The Rive iOS Runtime enables you to load and render Rive animations in your Apple platform applications with support for UIKit, AppKit, and SwiftUI.
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
   >
-    Edit your docs locally and preview them in real time.
+    Get up and running with your first Rive animation in minutes
   </Card>
   <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
+    title="Installation"
+    icon="download"
+    href="/installation"
   >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+    Install via Swift Package Manager or CocoaPods
   </Card>
   <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
+    title="Animation Playback"
+    icon="play"
+    href="/concepts/animations"
   >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
-
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+    Control animations, artboards, and playback options
   </Card>
   <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
+    title="State Machines"
+    icon="gear"
+    href="/concepts/state-machines"
   >
-    Add sample code to demonstrate how to use your product.
+    Create interactive animations that respond to user inputs
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+</CardGroup>
 
-## Need inspiration?
+## Supported Platforms
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+The Rive iOS Runtime supports the following Apple platforms:
+
+- **iOS** 14.0+
+- **macOS** 13.1+
+- **tvOS** 16.0+
+- **visionOS** 1.0+
+- **Mac Catalyst** 14.0+
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="SwiftUI & UIKit Support" icon="apple">
+    First-class support for both modern SwiftUI and traditional UIKit/AppKit applications
+  </Card>
+  <Card title="State Machines" icon="diagram-project">
+    Interactive animations that respond to user input and application state
+  </Card>
+  <Card title="Layout Control" icon="expand">
+    Flexible layout options with fit modes and alignment controls
+  </Card>
+  <Card title="Text Rendering" icon="font">
+    Full support for Rive Text with custom fonts and dynamic content
+  </Card>
+  <Card title="Audio Assets" icon="volume">
+    Play audio synchronized with your animations
+  </Card>
+  <Card title="Events" icon="bell">
+    Listen and respond to events fired from your animations
+  </Card>
+</CardGroup>
+
+## What You Can Build
+
+The Rive iOS Runtime enables you to create rich interactive experiences:
+
+- **Animated UI Components**: Buttons, sliders, progress bars, and custom controls
+- **Onboarding Flows**: Engaging user onboarding with interactive tutorials
+- **Games**: Casual games with state machine-driven gameplay
+- **Data Visualizations**: Animated charts and graphs that respond to data changes
+- **Loading States**: Beautiful loading animations and skeleton screens
+- **Character Animations**: Interactive characters that respond to user interaction
+
+## Example: Simple Animation
+
+Here's how easy it is to get started with SwiftUI:
+
+```swift SwiftUI
+import SwiftUI
+import RiveRuntime
+
+struct ContentView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "truck"
+    )
+    
+    var body: some View {
+        viewModel.view()
+    }
+}
+```
+
+```swift UIKit
+import UIKit
+import RiveRuntime
+
+class ViewController: UIViewController {
+    var viewModel = RiveViewModel(fileName: "truck")
+    
+    override func viewWillAppear(_ animated: Bool) {
+        let riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+}
+```
+
+<Note>
+  The examples above load a Rive file named `truck.riv` from your app's bundle and automatically play the default animation.
+</Note>
+
+## Next Steps
+
+<Steps>
+  <Step title="Install the Runtime">
+    Follow the [Installation Guide](/installation) to add Rive to your project via Swift Package Manager or CocoaPods.
+  </Step>
+  <Step title="Create Your First Animation">
+    Follow the [Quick Start Guide](/quickstart) to render your first Rive animation.
+  </Step>
+  <Step title="Explore Examples">
+    Check out the example project in the GitHub repository for advanced usage patterns.
+  </Step>
+</Steps>
+
+## Resources
+
+- [Rive Homepage](https://rive.app/)
+- [Rive Documentation](https://rive.app/docs/)
+- [Rive Community](https://community.rive.app/)
+- [GitHub Repository](https://github.com/rive-app/rive-ios)
+- [File an Issue](https://github.com/rive-app/rive-ios/issues)
+
+## Community
+
+Join the Rive community to get help, share your work, and connect with other developers:
+
+- Join our [Discord Server](https://discord.gg/rive)
+- Follow us on [Twitter](https://twitter.com/rive_app)
+- Browse [Awesome Rive](https://github.com/rive-app/awesome-rive) for examples and resources

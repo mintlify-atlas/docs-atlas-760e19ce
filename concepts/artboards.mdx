@@ -1,0 +1,270 @@
+---
+title: Artboards
+description: Understand artboards and how to work with RiveArtboard instances
+---
+
+Artboards are the canvas containers in Rive that hold your graphics, animations, and state machines. Each `.riv` file can contain multiple artboards, allowing you to organize related animations in a single file.
+
+## Overview
+
+The `RiveArtboard` class represents an instance of an artboard from a Rive file. It provides access to animations, state machines, and allows you to advance time and render content.
+
+## Getting an Artboard
+
+### From RiveFile
+
+```swift
+do {
+    let file = try RiveFile(name: "truck")
+    
+    // Get the default artboard
+    let artboard = try file.artboard()
+    
+    // Get artboard by name
+    let namedArtboard = try file.artboard(fromName: "Square")
+    
+    // Get artboard by index
+    let indexedArtboard = try file.artboard(from: 0)
+} catch {
+    print("Error loading artboard: \(error)")
+}
+```
+
+### From RiveModel
+
+```swift
+do {
+    let model = try RiveModel(fileName: "truck")
+    
+    // Set artboard by name
+    try model.setArtboard("Square")
+    
+    // Set artboard by index
+    try model.setArtboard(0)
+    
+    // Set default artboard
+    try model.setArtboard()
+    
+    // Access the artboard
+    let artboard = model.artboard
+} catch {
+    print("Error setting artboard: \(error)")
+}
+```
+
+## Artboard Properties
+
+### Dimensions
+
+```swift
+let artboard = try file.artboard()
+
+// Get artboard dimensions
+let width = artboard.width()
+let height = artboard.height()
+let bounds = artboard.bounds()
+
+print("Size: \(width) x \(height)")
+print("Bounds: \(bounds)")
+
+// Resize artboard
+artboard.setWidth(800)
+artboard.setHeight(600)
+
+// Reset to original size
+artboard.resetArtboardSize()
+```
+
+### Name
+
+```swift
+let name = artboard.name()
+print("Artboard name: \(name)")
+```
+
+### Audio Volume
+
+```swift
+// Set volume (0.0 to 1.0)
+artboard.volume = 0.75
+
+// Get current volume
+let currentVolume = artboard.volume
+```
+
+## Working with Animations
+
+### Accessing Animations
+
+```swift
+// Get animation count
+let count = artboard.animationCount()
+print("This artboard has \(count) animations")
+
+// List all animation names
+let names = artboard.animationNames()
+print("Animations: \(names)")
+
+// Get animation by name
+do {
+    let animation = try artboard.animation(fromName: "idle")
+} catch {
+    print("Animation not found")
+}
+
+// Get animation by index
+do {
+    let animation = try artboard.animation(from: 0)
+} catch {
+    print("Animation not found")
+}
+```
+
+### Example: Multiple Artboards
+
+```swift
+class MultipleAnimationsController: UIViewController {
+    var rSquareGoAround = RiveViewModel(
+        fileName: "artboard_animations",
+        animationName: "goaround",
+        artboardName: "Square"
+    )
+    
+    var rCircle = RiveViewModel(
+        fileName: "artboard_animations",
+        artboardName: "Circle"
+    )
+    
+    var rStar = RiveViewModel(
+        fileName: "artboard_animations",
+        artboardName: "Star"
+    )
+}
+```
+
+## Working with State Machines
+
+### Accessing State Machines
+
+```swift
+// Get state machine count
+let count = artboard.stateMachineCount()
+
+// List all state machine names
+let names = artboard.stateMachineNames()
+
+// Get state machine by name
+do {
+    let sm = try artboard.stateMachine(fromName: "State Machine 1")
+} catch {
+    print("State machine not found")
+}
+
+// Get default state machine
+if let defaultSM = artboard.defaultStateMachine() {
+    print("Using default state machine")
+}
+```
+
+## Accessing State Machine Inputs
+
+```swift
+// Get inputs directly from artboard
+let boolInput = artboard.getBool("isActive", path: "")
+let numberInput = artboard.getNumber("level", path: "")
+let triggerInput = artboard.getTrigger("reset", path: "")
+
+// Use path for nested inputs
+let nestedInput = artboard.getNumber("value", path: "nested/path")
+```
+
+## Text Runs
+
+Access and modify text content in your artboard:
+
+```swift
+// Get text run by name
+if let textRun = artboard.textRun("username") {
+    textRun.text = "John Doe"
+}
+
+// Get text run with path
+if let textRun = artboard.textRun("label", path: "header") {
+    textRun.text = "Welcome"
+}
+```
+
+## Advancing and Drawing
+
+### Manual Advancement
+
+```swift
+// Advance artboard time
+let deltaTime = 1.0 / 60.0 // 60 FPS
+artboard.advance(by: deltaTime)
+
+// Check if artboard changed
+if artboard.didChange {
+    print("Artboard needs redraw")
+}
+```
+
+### Rendering
+
+```swift
+let context = // your CGContext
+let renderer = RiveRenderer(context: context)
+
+// Draw the artboard
+artboard.draw(renderer)
+```
+
+## Data Binding
+
+Bind view model instances to artboards:
+
+```swift
+let file = try RiveFile(name: "animation")
+let artboard = try file.artboard()
+
+if let viewModel = file.defaultViewModel(for: artboard),
+   let instance = viewModel.createDefaultInstance() {
+    // Bind to artboard
+    artboard.bind(viewModelInstance: instance)
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Multiple instances from one file">
+    You can create multiple artboard instances from a single `RiveFile`. Each instance maintains its own animation state.
+    
+    ```swift
+    let file = try RiveFile(name: "characters")
+    let character1 = try file.artboard(fromName: "Hero")
+    let character2 = try file.artboard(fromName: "Hero") // Independent instance
+    ```
+  </Accordion>
+  
+  <Accordion title="Check for existence before accessing">
+    Always verify that animations or state machines exist before trying to access them by name or index.
+    
+    ```swift
+    let names = artboard.animationNames()
+    if names.contains("idle") {
+        let animation = try artboard.animation(fromName: "idle")
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Use RiveViewModel for simpler integration">
+    For most use cases, `RiveViewModel` provides a higher-level interface that handles artboard management automatically.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+- [RiveFile](/concepts/rive-files) - Load .riv files and access artboards
+- [Linear Animations](/concepts/animations) - Work with linear animations
+- [State Machines](/concepts/state-machines) - Interactive animation logic

@@ -1,0 +1,235 @@
+---
+title: Rive Text
+description: Learn how to dynamically update text content in your Rive animations
+---
+
+Rive Text allows you to update text content in your animations dynamically at runtime. This is useful for displaying user names, scores, labels, and other dynamic text content.
+
+## Overview
+
+Text Runs in Rive are named text elements that can be updated programmatically. The iOS Runtime provides methods to get and set text values on Text Runs within your artboards.
+
+## Basic Usage
+
+### Setting Text Values
+
+Use the `setTextRunValue` method to update text content:
+
+```swift
+import RiveRuntime
+
+let viewModel = RiveViewModel(fileName: "text_example")
+
+do {
+    try viewModel.setTextRunValue("MyRun", textValue: "Hello, World!")
+} catch {
+    print("Error setting text: \(error)")
+}
+```
+
+### Getting Text Values
+
+Retrieve the current text value from a Text Run:
+
+```swift
+if let currentText = viewModel.getTextRunValue("MyRun") {
+    print("Current text: \(currentText)")
+}
+```
+
+## Working with Nested Text Runs
+
+For Text Runs nested within artboards or groups, use the path parameter:
+
+```swift
+// Set nested text run
+try viewModel.setTextRunValue(
+    "text",
+    path: "Nested/Two-Deep",
+    textValue: "Nested text content"
+)
+
+// Get nested text run
+if let nestedText = viewModel.getTextRunValue("text", path: "Nested/Two-Deep") {
+    print("Nested text: \(nestedText)")
+}
+```
+
+The path uses forward slashes (`/`) to separate nested levels.
+
+## SwiftUI Example
+
+Here's a complete SwiftUI example with a text input field:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct TextInputView: View {
+    @State private var userInput: String = ""
+    @StateObject private var rvm = RiveViewModel(fileName: "text_test_2")
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Enter text:")
+                .font(.headline)
+            
+            TextField("Enter text...", text: $userInput)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+                .onChange(of: userInput) { newValue in
+                    if !newValue.isEmpty {
+                        do {
+                            try rvm.setTextRunValue("MyRun", textValue: userInput)
+                        } catch {
+                            print("Error: \(error)")
+                        }
+                    }
+                }
+            
+            rvm.view()
+        }
+        .padding()
+    }
+}
+```
+
+## UIKit Example
+
+```swift
+import UIKit
+import RiveRuntime
+
+class TextViewController: UIViewController {
+    @IBOutlet weak var riveView: RiveView!
+    @IBOutlet weak var textField: UITextField!
+    
+    var viewModel: RiveViewModel!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        viewModel = RiveViewModel(fileName: "text_example")
+        viewModel.setView(riveView)
+        
+        textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+    }
+    
+    @objc func textFieldDidChange(_ textField: UITextField) {
+        guard let text = textField.text else { return }
+        
+        do {
+            try viewModel.setTextRunValue("MyRun", textValue: text)
+        } catch {
+            print("Error updating text: \(error)")
+        }
+    }
+}
+```
+
+## Using RiveTextValueRun Directly
+
+For more direct control, you can access `RiveTextValueRun` objects through the artboard:
+
+```swift
+import RiveRuntime
+
+if let textRun = artboard.textRun("MyRun") {
+    // Get current text
+    let currentText = textRun.text()
+    
+    // Set new text
+    textRun.setText("New text value")
+}
+
+// For nested text runs
+if let nestedTextRun = artboard.textRun("text", path: "Nested/Two-Deep") {
+    nestedTextRun.setText("Updated nested text")
+}
+```
+
+## Updating When Not Playing
+
+When the animation is not playing, you need to manually advance the view to see text changes:
+
+```swift
+import RiveRuntime
+
+let viewModel = RiveViewModel(fileName: "text_example")
+
+// Update text
+try? viewModel.setTextRunValue("MyRun", textValue: "Updated")
+
+// Manually advance to refresh the view
+if viewModel.isPlaying == false {
+    viewModel.riveView?.advance(delta: 0)
+}
+```
+
+The `setTextRunValue` methods in `RiveViewModel` automatically handle this for you.
+
+## Formatting and Styling
+
+Text styling (font, size, color, alignment, etc.) is controlled in the Rive editor. The runtime only updates the text content itself, not the styling.
+
+To change styles dynamically, consider:
+- Using different Text Runs with pre-configured styles
+- Using [Data Binding](/advanced/data-binding) with view model properties
+- Switching between different artboards or animations
+
+## Error Handling
+
+The `setTextRunValue` methods throw errors if the text run cannot be found:
+
+```swift
+import RiveRuntime
+
+do {
+    try viewModel.setTextRunValue("NonexistentRun", textValue: "Text")
+} catch RiveError.textValueRunError(let message) {
+    print("Text run error: \(message)")
+} catch {
+    print("Unexpected error: \(error)")
+}
+```
+
+Error messages will indicate:
+- The name of the text run that couldn't be found
+- That the active artboard doesn't contain the specified text run
+
+## Best Practices
+
+1. **Name Your Text Runs**: Give meaningful names to Text Runs in the Rive editor for easy reference
+2. **Handle Errors**: Always wrap `setTextRunValue` calls in do-catch blocks
+3. **Use Optional Binding**: When getting text values, use optional binding to handle nil cases
+4. **Manual Refresh**: Remember to advance the view when updating text while not playing
+5. **Path Syntax**: Use forward slashes for nested paths, matching the hierarchy in your Rive file
+
+## Text Run Requirements
+
+Note: Text features require the `WITH_RIVE_TEXT` compilation flag, which is enabled by default in the iOS Runtime.
+
+## Common Use Cases
+
+### User Profiles
+```swift
+try? viewModel.setTextRunValue("userName", textValue: user.name)
+try? viewModel.setTextRunValue("userEmail", textValue: user.email)
+```
+
+### Scores and Counters
+```swift
+try? viewModel.setTextRunValue("scoreLabel", textValue: "\(score)")
+try? viewModel.setTextRunValue("levelLabel", textValue: "Level \(currentLevel)")
+```
+
+### Dynamic Labels
+```swift
+try? viewModel.setTextRunValue("statusLabel", textValue: isConnected ? "Connected" : "Disconnected")
+try? viewModel.setTextRunValue("timeLabel", textValue: formattedTime)
+```
+
+## See Also
+
+- [Custom Fonts](/advanced/custom-fonts) - Using custom and fallback fonts
+- [Data Binding](/advanced/data-binding) - Alternative approach for dynamic content

@@ -1,80 +1,401 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Get started with Rive animations in your iOS app in minutes
 ---
 
-## Get started in three steps
+# Quick Start Guide
 
-Get your documentation site running locally and make your first customization.
+This guide will walk you through creating your first Rive animation in an iOS app, from installation to rendering an interactive animation on screen.
 
-### Step 1: Set up your local environment
+## Prerequisites
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+Before starting, ensure you have:
+
+- Xcode 14.0 or later installed
+- An iOS project targeting iOS 14.0+ (or macOS 13.1+, tvOS 16.0+, visionOS 1.0+)
+- The RiveRuntime package installed (see [Installation Guide](/installation))
+
+## Step 1: Add a Rive File to Your Project
+
+<Steps>
+  <Step title="Get a Rive File">
+    Download a `.riv` file from the [Rive Community](https://rive.app/community/) or create your own in the [Rive Editor](https://rive.app/editor).
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    For this guide, we'll use a file named `truck.riv`.
+  </Step>
+  
+  <Step title="Add to Xcode Project">
+    Drag the `.riv` file into your Xcode project navigator. Make sure to:
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    - Check **Copy items if needed**
+    - Select your app target in **Add to targets**
+  </Step>
+  
+  <Step title="Verify Resource">
+    The file should now appear in your target's **Build Phases → Copy Bundle Resources**.
+  </Step>
+</Steps>
 
-### Step 2: Deploy your changes
+## Step 2: Import RiveRuntime
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+At the top of your Swift file, import the RiveRuntime framework:
+
+```swift
+import RiveRuntime
+import SwiftUI // or UIKit
+```
+
+## Step 3: Create Your First Animation
+
+Choose the approach that matches your app architecture:
+
+<CodeGroup>
+```swift SwiftUI - Simple Animation
+import SwiftUI
+import RiveRuntime
+
+struct ContentView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "truck"
+    )
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    var body: some View {
+        viewModel.view()
+            .aspectRatio(contentMode: .fit)
+    }
+}
+```
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+```swift UIKit - Simple Animation
+import UIKit
+import RiveRuntime
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+class ViewController: UIViewController {
+    var viewModel = RiveViewModel(fileName: "truck")
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        let riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        
+        // Set up constraints or frame
+        riveView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            riveView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            riveView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            riveView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            riveView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.5)
+        ])
+    }
+}
+```
+</CodeGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  By default, `RiveViewModel` automatically plays the first animation in the file. You can customize this behavior with additional parameters.
 </Note>
+
+## Step 4: Customize Playback Options
+
+Control animation playback, layout, and loop behavior:
+
+```swift Customization Options
+@StateObject private var viewModel = RiveViewModel(
+    fileName: "truck",
+    animationName: "drive",      // Specific animation to play
+    artboardName: "Artboard",     // Specific artboard (optional)
+    fit: .contain,                 // How the animation fits in the view
+    alignment: .center,            // Alignment within the view
+    autoPlay: true,                // Start playing automatically
+    loop: .loop                    // Loop behavior (.loop, .oneShot, .pingPong)
+)
+```
+
+### Layout Options
+
+Control how your animation fits within its container:
+
+```swift Layout Configuration
+import SwiftUI
+import RiveRuntime
+
+struct LayoutExample: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "layout_test",
+        fit: .contain
+    )
+    
+    @State private var fit: RiveFit = .contain
+    @State private var alignment: RiveAlignment = .center
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+                .onChange(of: fit) { newValue in
+                    viewModel.fit = newValue
+                }
+                .onChange(of: alignment) { newValue in
+                    viewModel.alignment = newValue
+                }
+            
+            // Layout controls
+            HStack {
+                Button("Fill") { fit = .fill }
+                Button("Contain") { fit = .contain }
+                Button("Cover") { fit = .cover }
+                Button("Fit Width") { fit = .fitWidth }
+            }
+            
+            HStack {
+                Button("Top Left") { alignment = .topLeft }
+                Button("Center") { alignment = .center }
+                Button("Bottom Right") { alignment = .bottomRight }
+            }
+        }
+    }
+}
+```
+
+## Step 5: Add Interactivity with State Machines
+
+State machines make your animations interactive by responding to user input:
+
+```swift State Machine Example
+import SwiftUI
+import RiveRuntime
+
+struct InteractiveAnimation: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "skills",
+        stateMachineName: "Designer's Test"
+    )
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+                .frame(height: 200)
+            
+            HStack {
+                Button("Beginner") {
+                    viewModel.setInput("Level", value: 0.0)
+                }
+                Button("Intermediate") {
+                    viewModel.setInput("Level", value: 1.0)
+                }
+                Button("Expert") {
+                    viewModel.setInput("Level", value: 2.0)
+                }
+            }
+            .padding()
+        }
+    }
+}
+```
+
+### Input Types
+
+State machines support three types of inputs:
+
+<CodeGroup>
+```swift Number Input
+// Set a numeric input
+viewModel.setInput("Level", value: 2.0)
+```
+
+```swift Boolean Input
+// Set a boolean input
+viewModel.setInput("isActive", value: true)
+```
+
+```swift Trigger Input
+// Fire a trigger (one-time event)
+viewModel.triggerInput("Submit")
+```
+</CodeGroup>
+
+## Step 6: Display Multiple Animations
+
+You can display different artboards and animations from the same Rive file:
+
+```swift Multiple Animations
+import SwiftUI
+import RiveRuntime
+
+struct MultipleAnimationsView: View {
+    let file = try! RiveFile(name: "artboard_animations")
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                Text("Square - Go Around")
+                RiveViewModel(
+                    model(file: file),
+                    animationName: "goaround",
+                    artboardName: "Square"
+                ).view()
+                .aspectRatio(1, contentMode: .fit)
+                
+                Text("Square - Roll Around")
+                RiveViewModel(
+                    model(file: file),
+                    animationName: "rollaround",
+                    artboardName: "Square"
+                ).view()
+                .aspectRatio(1, contentMode: .fit)
+                
+                Text("Circle")
+                RiveViewModel(
+                    model(file: file),
+                    artboardName: "Circle"
+                ).view()
+                .aspectRatio(1, contentMode: .fit)
+            }
+            .padding()
+        }
+    }
+    
+    func model(file: RiveFile) -> RiveModel {
+        RiveModel(riveFile: file)
+    }
+}
+```
+
+## Complete Working Example
+
+Here's a complete example that puts it all together:
+
+```swift Complete Example
+import SwiftUI
+import RiveRuntime
+
+struct RiveAnimationView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "halloween",
+        autoPlay: false
+    )
+    
+    @State private var isPlaying = false
+    
+    var body: some View {
+        VStack {
+            // Animation View
+            viewModel.view()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 300)
+            
+            // Playback Controls
+            HStack(spacing: 20) {
+                Button(action: togglePlayback) {
+                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                        .font(.title)
+                }
+                
+                Button("Reset") {
+                    viewModel.reset()
+                    isPlaying = false
+                }
+            }
+            .padding()
+        }
+        .padding()
+    }
+    
+    private func togglePlayback() {
+        if isPlaying {
+            viewModel.pause()
+        } else {
+            viewModel.play()
+        }
+        isPlaying.toggle()
+    }
+}
+
+#Preview {
+    RiveAnimationView()
+}
+```
+
+## Common RiveViewModel Methods
+
+<CodeGroup>
+```swift Playback Control
+// Play the animation
+viewModel.play()
+
+// Pause the animation
+viewModel.pause()
+
+// Stop and reset to the beginning
+viewModel.stop()
+
+// Reset to initial state
+viewModel.reset()
+```
+
+```swift State Machine Inputs
+// Set a number input
+viewModel.setInput("speed", value: 2.5)
+
+// Set a boolean input
+viewModel.setInput("isActive", value: true)
+
+// Trigger an input
+viewModel.triggerInput("tap")
+```
+
+```swift Layout Updates
+// Change fit mode
+viewModel.fit = .cover
+
+// Change alignment
+viewModel.alignment = .topLeft
+```
+</CodeGroup>
+
+## Next Steps
+
+Now that you've created your first Rive animation, explore more advanced features:
+
+<CardGroup cols={2}>
+  <Card title="Animation Playback" icon="play" href="/animation-playback">
+    Learn about advanced playback control and animation management
+  </Card>
+  <Card title="State Machines" icon="gear" href="/state-machines">
+    Create complex interactive animations with state machines
+  </Card>
+  <Card title="Layout" icon="expand" href="/layout">
+    Master layout options, fit modes, and alignment
+  </Card>
+  <Card title="Events" icon="bell" href="/events">
+    Listen and respond to events from your animations
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+### Animation Not Showing
+
+- Verify the `.riv` file is in your bundle resources
+- Check the file name matches exactly (case-sensitive)
+- Ensure the view has a non-zero frame size
+
+### Animation Not Playing
+
+- Check that `autoPlay` is set to `true` or call `viewModel.play()` explicitly
+- Verify the animation name exists in your Rive file
+- Make sure the artboard name is correct if specified
+
+### State Machine Inputs Not Working
+
+- Verify the state machine name is correct
+- Check that input names match exactly (case-sensitive)
+- Ensure the input type matches (number, boolean, or trigger)
+- Confirm the state machine is properly configured in the Rive editor
+
+## Resources
+
+- [Rive Community Files](https://rive.app/community/) - Download free Rive animations
+- [Rive Editor](https://rive.app/editor) - Create your own animations
+- [API Documentation](https://rive.app/docs/runtimes/apple/apple) - Detailed API reference
+- [GitHub Examples](https://github.com/rive-app/rive-ios/tree/master/Example-iOS) - More code examples

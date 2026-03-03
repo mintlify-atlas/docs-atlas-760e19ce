@@ -1,0 +1,274 @@
+---
+title: "RiveLinearAnimationInstance"
+description: "Reference for the RiveLinearAnimationInstance class, which represents an instance of a linear animation that can be played and controlled."
+---
+
+## Overview
+
+`RiveLinearAnimationInstance` represents an instance of a linear animation within a Rive artboard. It provides control over animation playback, including time manipulation, looping, direction, and playback state.
+
+## Time Control
+
+### time
+
+Returns the current time position of the animation in seconds.
+
+<ResponseField name="return" type="float" required>
+  The current time in seconds.
+</ResponseField>
+
+```objc
+- (float)time;
+```
+
+### setTime:
+
+Sets the current time position of the animation.
+
+<ParamField path="time" type="float" required>
+  The time in seconds to set the animation to.
+</ParamField>
+
+```objc
+- (void)setTime:(float)time;
+```
+
+### endTime
+
+Returns the end time of the animation in seconds.
+
+<ResponseField name="return" type="float" required>
+  The end time in seconds.
+</ResponseField>
+
+```objc
+- (float)endTime;
+```
+
+## Playback Control
+
+### advanceBy:
+
+Advances the animation by the specified elapsed time.
+
+<ParamField path="elapsedSeconds" type="double" required>
+  The time in seconds to advance the animation.
+</ParamField>
+
+<ResponseField name="return" type="bool" required>
+  Returns true if the animation is still playing, false if it has ended.
+</ResponseField>
+
+```objc
+- (bool)advanceBy:(double)elapsedSeconds;
+```
+
+### direction (getter)
+
+Returns the current playback direction of the animation.
+
+<ResponseField name="return" type="int" required>
+  The direction value: 1 for forward, -1 for backward.
+</ResponseField>
+
+```objc
+- (int)direction;
+```
+
+### direction: (setter)
+
+Sets the playback direction of the animation.
+
+<ParamField path="direction" type="int" required>
+  The direction to set: 1 for forward, -1 for backward.
+</ParamField>
+
+```objc
+- (void)direction:(int)direction;
+```
+
+## Loop Control
+
+### loop (getter)
+
+Returns the current loop mode of the animation.
+
+<ResponseField name="return" type="int" required>
+  The loop mode value. Common values:
+  - 0: One-shot (no looping)
+  - 1: Loop (repeat from start)
+  - 2: Ping-pong (reverse direction on each loop)
+</ResponseField>
+
+```objc
+- (int)loop;
+```
+
+### loop: (setter)
+
+Sets the loop mode of the animation.
+
+<ParamField path="loopMode" type="int" required>
+  The loop mode to set:
+  - 0: One-shot (no looping)
+  - 1: Loop (repeat from start)
+  - 2: Ping-pong (reverse direction on each loop)
+</ParamField>
+
+```objc
+- (void)loop:(int)loopMode;
+```
+
+### didLoop
+
+Returns whether the animation looped during the last advance.
+
+<ResponseField name="return" type="bool" required>
+  True if the animation looped, false otherwise.
+</ResponseField>
+
+```objc
+- (bool)didLoop;
+```
+
+## Animation Information
+
+### name
+
+Returns the name of the animation.
+
+<ResponseField name="return" type="NSString*" required>
+  The animation's name as defined in the Rive file.
+</ResponseField>
+
+```objc
+- (NSString*)name;
+```
+
+### fps
+
+Returns the frames per second of the animation.
+
+<ResponseField name="return" type="NSInteger" required>
+  The animation's FPS value.
+</ResponseField>
+
+```objc
+- (NSInteger)fps;
+```
+
+### workStart
+
+Returns the work start frame of the animation.
+
+<ResponseField name="return" type="NSInteger" required>
+  The frame number where the animation's work area starts.
+</ResponseField>
+
+```objc
+- (NSInteger)workStart;
+```
+
+### workEnd
+
+Returns the work end frame of the animation.
+
+<ResponseField name="return" type="NSInteger" required>
+  The frame number where the animation's work area ends.
+</ResponseField>
+
+```objc
+- (NSInteger)workEnd;
+```
+
+### duration
+
+Returns the total duration of the animation in frames.
+
+<ResponseField name="return" type="NSInteger" required>
+  The animation's duration in frames.
+</ResponseField>
+
+```objc
+- (NSInteger)duration;
+```
+
+### effectiveDuration
+
+Returns the effective duration of the animation in frames (accounting for work area).
+
+<ResponseField name="return" type="NSInteger" required>
+  The effective duration in frames.
+</ResponseField>
+
+```objc
+- (NSInteger)effectiveDuration;
+```
+
+### effectiveDurationInSeconds
+
+Returns the effective duration of the animation in seconds.
+
+<ResponseField name="return" type="float" required>
+  The effective duration in seconds.
+</ResponseField>
+
+```objc
+- (float)effectiveDurationInSeconds;
+```
+
+## Playback State
+
+### hasEnded
+
+Returns whether the animation has ended.
+
+<ResponseField name="return" type="bool" required>
+  True if the animation has finished playing, false otherwise.
+</ResponseField>
+
+```objc
+- (bool)hasEnded;
+```
+
+## Example Usage
+
+```objc
+// Get animation from artboard
+NSError* error = nil;
+RiveLinearAnimationInstance* animation = [artboard animationFromName:@"idle" error:&error];
+
+if (error) {
+    NSLog(@"Failed to get animation: %@", error);
+    return;
+}
+
+// Set loop mode to loop
+[animation loop:1];
+
+// Set playback direction to forward
+[animation direction:1];
+
+// Get animation information
+NSString* name = [animation name];
+float duration = [animation effectiveDurationInSeconds];
+NSLog(@"Playing animation '%@' with duration %.2f seconds", name, duration);
+
+// Advance animation in render loop
+- (void)tick:(double)deltaTime {
+    bool isPlaying = [animation advanceBy:deltaTime];
+    
+    if ([animation didLoop]) {
+        NSLog(@"Animation looped!");
+    }
+    
+    if ([animation hasEnded]) {
+        NSLog(@"Animation ended!");
+    }
+    
+    [artboard advanceBy:deltaTime];
+}
+
+// Set specific time
+[animation setTime:1.5]; // Jump to 1.5 seconds
+```

@@ -1,0 +1,363 @@
+---
+title: State Machines
+description: Work with interactive animations using RiveStateMachineInstance
+---
+
+State machines enable interactive, logic-driven animations in Rive. They respond to user input, trigger events, and manage complex animation flows automatically.
+
+## Overview
+
+The `RiveStateMachineInstance` class represents a running instance of a state machine from your Rive file. State machines control animation states based on inputs and conditions, making them ideal for interactive experiences.
+
+## Creating State Machine Instances
+
+### From RiveArtboard
+
+```swift
+do {
+    let file = try RiveFile(name: "button")
+    let artboard = try file.artboard()
+    
+    // Get state machine by name
+    let sm = try artboard.stateMachine(fromName: "Button State")
+    
+    // Get state machine by index
+    let firstSM = try artboard.stateMachine(from: 0)
+    
+    // Get default state machine
+    if let defaultSM = artboard.defaultStateMachine() {
+        print("Using default state machine")
+    }
+    
+    // List available state machines
+    let names = artboard.stateMachineNames()
+    print("Available state machines: \(names)")
+} catch {
+    print("Error loading state machine: \(error)")
+}
+```
+
+### Using RiveModel
+
+```swift
+do {
+    let model = try RiveModel(fileName: "button")
+    
+    // Set state machine by name
+    try model.setStateMachine("Button State")
+    
+    // Set default state machine
+    try model.setStateMachine()
+    
+    // Access the state machine instance
+    let sm = model.stateMachine
+} catch {
+    print("Error setting state machine: \(error)")
+}
+```
+
+### Using RiveViewModel
+
+```swift
+// Create with specific state machine
+let viewModel = RiveViewModel(
+    fileName: "skills",
+    stateMachineName: "Designer's Test"
+)
+```
+
+## Advancing State Machines
+
+```swift
+let sm = try artboard.stateMachine(fromName: "Button State")
+
+// Advance by elapsed time (in seconds)
+let deltaTime = 1.0 / 60.0 // 60 FPS
+let didStateChange = sm.advance(by: deltaTime)
+
+if didStateChange {
+    print("State machine changed state")
+}
+```
+
+## Working with Inputs
+
+State machines can have three types of inputs: booleans, numbers, and triggers.
+
+### Accessing Inputs
+
+```swift
+// Get input count
+let count = sm.inputCount()
+print("State machine has \(count) inputs")
+
+// List input names
+let names = sm.inputNames()
+print("Available inputs: \(names)")
+
+// Get input by name
+do {
+    let input = try sm.input(fromName: "Hover")
+} catch {
+    print("Input not found")
+}
+
+// Get input by index
+do {
+    let input = try sm.input(from: 0)
+} catch {
+    print("Input not found")
+}
+```
+
+### Boolean Inputs
+
+```swift
+// Get boolean input
+if let boolInput = sm.getBool("isActive") {
+    // Read current value
+    let currentValue = boolInput.value()
+    
+    // Set value
+    boolInput.value(true)
+}
+```
+
+### Number Inputs
+
+```swift
+// Get number input
+if let numberInput = sm.getNumber("Level") {
+    // Read current value
+    let currentValue = numberInput.value()
+    
+    // Set value
+    numberInput.value(2.5)
+}
+```
+
+### Trigger Inputs
+
+```swift
+// Get trigger input
+if let trigger = sm.getTrigger("Reset") {
+    // Fire the trigger
+    trigger.fire()
+}
+```
+
+### Using RiveViewModel for Inputs
+
+```swift
+let viewModel = RiveViewModel(
+    fileName: "skills",
+    stateMachineName: "Designer's Test"
+)
+
+// Set inputs by name
+viewModel.setInput("Level", value: 0.0)  // Beginner
+viewModel.setInput("Level", value: 1.0)  // Intermediate
+viewModel.setInput("Level", value: 2.0)  // Expert
+```
+
+## State Changes
+
+Track when states change in your state machine:
+
+```swift
+// Get number of state changes since last frame
+let changeCount = sm.stateChangedCount()
+
+if changeCount > 0 {
+    // Get state changes by index
+    for i in 0..<changeCount {
+        if let state = try? sm.stateChanged(from: i) {
+            print("Changed to state: \(state)")
+        }
+    }
+}
+
+// Get all state change names
+let changes = sm.stateChanges()
+print("States changed: \(changes)")
+```
+
+## Events
+
+Handle events reported by the state machine:
+
+```swift
+// Get number of reported events
+let eventCount = sm.reportedEventCount()
+
+// Process events
+for i in 0..<eventCount {
+    let event = sm.reportedEvent(at: i)
+    // Handle the event
+    print("Event fired: \(event.name())")
+}
+```
+
+## Touch/Pointer Interactions
+
+State machines can respond to touch events:
+
+### Basic Touch Events
+
+```swift
+// Touch began
+let hitResult = sm.touchBegan(at: CGPoint(x: 100, y: 100))
+if hitResult == .hit {
+    print("Touch hit an interactive element")
+}
+
+// Touch moved
+let moveResult = sm.touchMoved(at: CGPoint(x: 150, y: 150))
+
+// Touch ended
+let endResult = sm.touchEnded(at: CGPoint(x: 150, y: 150))
+
+// Touch cancelled
+let cancelResult = sm.touchCancelled(at: CGPoint(x: 150, y: 150))
+
+// Touch exited
+let exitResult = sm.touchExited(at: CGPoint(x: 200, y: 200))
+```
+
+### Multi-touch Support
+
+Use touch IDs for multi-touch interactions:
+
+```swift
+// Touch with ID
+let result1 = sm.touchBegan(at: CGPoint(x: 100, y: 100), touchID: 1)
+let result2 = sm.touchBegan(at: CGPoint(x: 200, y: 200), touchID: 2)
+
+// Move specific touch
+sm.touchMoved(at: CGPoint(x: 150, y: 150), touchID: 1)
+
+// End specific touch
+sm.touchEnded(at: CGPoint(x: 150, y: 150), touchID: 1)
+```
+
+### Hit Results
+
+| Result | Description |
+|--------|-------------|
+| `none` | Touch didn't hit any interactive element |
+| `hit` | Touch hit an interactive element |
+| `hitOpaque` | Touch hit an opaque interactive element |
+
+## Layer Information
+
+```swift
+// Get number of layers
+let layerCount = sm.layerCount()
+print("State machine has \(layerCount) layers")
+```
+
+## State Machine Name
+
+```swift
+let name = sm.name()
+print("Running state machine: \(name)")
+```
+
+## Data Binding
+
+Bind view model instances to state machines:
+
+```swift
+let file = try RiveFile(name: "animation")
+let artboard = try file.artboard()
+let sm = try artboard.stateMachine(fromName: "State Machine 1")
+
+if let viewModel = file.defaultViewModel(for: artboard),
+   let instance = viewModel.createDefaultInstance() {
+    // Bind to state machine (automatically binds to artboard too)
+    sm.bind(viewModelInstance: instance)
+}
+```
+
+## Complete Example
+
+### SwiftUI State Machine with Inputs
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct StateMachineView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "skills",
+        stateMachineName: "Designer's Test"
+    )
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+                .frame(height: 200)
+            
+            HStack {
+                Button("Beginner") {
+                    viewModel.setInput("Level", value: 0.0)
+                }
+                Button("Intermediate") {
+                    viewModel.setInput("Level", value: 1.0)
+                }
+                Button("Expert") {
+                    viewModel.setInput("Level", value: 2.0)
+                }
+            }
+        }
+    }
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use state machines for interactive content">
+    State machines are ideal for buttons, toggles, hover effects, and any animation that responds to user input.
+    
+    ```swift
+    let buttonVM = RiveViewModel(
+        fileName: "button",
+        stateMachineName: "Button State"
+    )
+    ```
+  </Accordion>
+  
+  <Accordion title="Check input existence before setting values">
+    Always verify inputs exist to avoid runtime errors.
+    
+    ```swift
+    let names = sm.inputNames()
+    if names.contains("Level") {
+        viewModel.setInput("Level", value: 1.0)
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Handle events each frame">
+    Process reported events immediately after advancing the state machine to ensure you don't miss any events.
+    
+    ```swift
+    sm.advance(by: deltaTime)
+    for i in 0..<sm.reportedEventCount() {
+        let event = sm.reportedEvent(at: i)
+        handleEvent(event)
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Use RiveViewModel for simplified input management">
+    `RiveViewModel` provides a simpler API for setting inputs compared to working directly with state machine instances.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+- [Linear Animations](/concepts/animations) - For timeline-based animations
+- [Artboards](/concepts/artboards) - Access state machines from artboards
+- [RiveViewModel](/api/rive-view-model) - High-level state machine control

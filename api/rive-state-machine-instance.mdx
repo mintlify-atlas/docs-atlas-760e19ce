@@ -1,0 +1,526 @@
+---
+title: "RiveStateMachineInstance"
+description: "Reference for the RiveStateMachineInstance class, which represents an instance of a state machine with input controls, event handling, and touch interaction support."
+---
+
+## Overview
+
+`RiveStateMachineInstance` represents an instance of a state machine within a Rive artboard. State machines provide interactive control over animations through inputs, handle events, and support touch interactions.
+
+## Properties
+
+<ResponseField name="viewModelInstance" type="RiveDataBindingViewModelInstance*" required>
+  The view model instance bound to this state machine (read-only, nullable).
+</ResponseField>
+
+## State Machine Information
+
+### name
+
+Returns the name of the state machine.
+
+<ResponseField name="return" type="NSString*" required>
+  The state machine's name as defined in the Rive file.
+</ResponseField>
+
+```objc
+- (NSString*)name;
+```
+
+## Playback Control
+
+### advanceBy:
+
+Advances the state machine by the specified elapsed time.
+
+<ParamField path="elapsedSeconds" type="double" required>
+  The time in seconds to advance the state machine.
+</ParamField>
+
+<ResponseField name="return" type="bool" required>
+  Returns true if the state machine needs to keep advancing, false otherwise.
+</ResponseField>
+
+```objc
+- (bool)advanceBy:(double)elapsedSeconds;
+```
+
+## Input Management
+
+### getBool:
+
+Retrieves a boolean input by name.
+
+<ParamField path="name" type="NSString*" required>
+  The name of the boolean input.
+</ParamField>
+
+<ResponseField name="return" type="const RiveSMIBool*" required>
+  The boolean input, or nil if not found.
+</ResponseField>
+
+```objc
+- (const RiveSMIBool*)getBool:(NSString*)name;
+```
+
+### getTrigger:
+
+Retrieves a trigger input by name.
+
+<ParamField path="name" type="NSString*" required>
+  The name of the trigger input.
+</ParamField>
+
+<ResponseField name="return" type="const RiveSMITrigger*" required>
+  The trigger input, or nil if not found.
+</ResponseField>
+
+```objc
+- (const RiveSMITrigger*)getTrigger:(NSString*)name;
+```
+
+### getNumber:
+
+Retrieves a number input by name.
+
+<ParamField path="name" type="NSString*" required>
+  The name of the number input.
+</ParamField>
+
+<ResponseField name="return" type="const RiveSMINumber*" required>
+  The number input, or nil if not found.
+</ResponseField>
+
+```objc
+- (const RiveSMINumber*)getNumber:(NSString*)name;
+```
+
+### inputNames
+
+Returns the names of all inputs in the state machine.
+
+<ResponseField name="return" type="NSArray<NSString*>*" required>
+  Array of input names.
+</ResponseField>
+
+```objc
+- (NSArray<NSString*>*)inputNames;
+```
+
+### inputCount
+
+Returns the number of inputs in the state machine.
+
+<ResponseField name="return" type="NSInteger" required>
+  The number of inputs.
+</ResponseField>
+
+```objc
+- (NSInteger)inputCount;
+```
+
+### inputFromIndex:error:
+
+Returns an input by its index.
+
+<ParamField path="index" type="NSInteger" required>
+  Zero-based index of the input.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveSMIInput*" required>
+  The input at the specified index, or nil if an error occurs.
+</ResponseField>
+
+```objc
+- (RiveSMIInput* __nullable)inputFromIndex:(NSInteger)index
+                                     error:(NSError**)error;
+```
+
+### inputFromName:error:
+
+Returns an input by its name.
+
+<ParamField path="name" type="NSString*" required>
+  Name of the input.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveSMIInput*" required>
+  The input with the specified name, or nil if an error occurs.
+</ResponseField>
+
+```objc
+- (RiveSMIInput* __nullable)inputFromName:(NSString*)name
+                                    error:(NSError**)error;
+```
+
+## Layer and State Management
+
+### layerCount
+
+Returns the number of layers in the state machine.
+
+<ResponseField name="return" type="NSInteger" required>
+  The number of layers.
+</ResponseField>
+
+```objc
+- (NSInteger)layerCount;
+```
+
+### stateChangedCount
+
+Returns the number of state changes that occurred in the last advance.
+
+<ResponseField name="return" type="NSInteger" required>
+  The number of state changes.
+</ResponseField>
+
+```objc
+- (NSInteger)stateChangedCount;
+```
+
+### stateChangedFromIndex:error:
+
+Returns a layer state that changed by its index.
+
+<ParamField path="index" type="NSInteger" required>
+  Zero-based index of the state change.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveLayerState*" required>
+  The layer state at the specified index, or nil if an error occurs.
+</ResponseField>
+
+```objc
+- (RiveLayerState* __nullable)stateChangedFromIndex:(NSInteger)index
+                                              error:(NSError**)error;
+```
+
+### stateChanges
+
+Returns the names of all states that changed.
+
+<ResponseField name="return" type="NSArray<NSString*>*" required>
+  Array of state names that changed.
+</ResponseField>
+
+```objc
+- (NSArray<NSString*>*)stateChanges;
+```
+
+## Event Handling
+
+### reportedEventCount
+
+Returns the number of events reported by the state machine since the last frame.
+
+<ResponseField name="return" type="NSInteger" required>
+  The number of reported events.
+</ResponseField>
+
+```objc
+- (NSInteger)reportedEventCount;
+```
+
+### reportedEventAt:
+
+Returns a reported event by its index.
+
+<ParamField path="index" type="NSInteger" required>
+  Zero-based index of the reported event.
+</ParamField>
+
+<ResponseField name="return" type="const RiveEvent*" required>
+  The event at the specified index.
+</ResponseField>
+
+```objc
+- (const RiveEvent*)reportedEventAt:(NSInteger)index;
+```
+
+## Touch Interaction
+
+### RiveHitResult Enum
+
+Represents the result of a touch interaction.
+
+<ResponseField name="none" type="RiveHitResult" required>
+  No hit detected.
+</ResponseField>
+
+<ResponseField name="hit" type="RiveHitResult" required>
+  Hit detected on a transparent area.
+</ResponseField>
+
+<ResponseField name="hitOpaque" type="RiveHitResult" required>
+  Hit detected on an opaque area.
+</ResponseField>
+
+### touchBeganAtLocation:
+
+Notifies the state machine that a touch began.
+
+<ParamField path="touchLocation" type="CGPoint" required>
+  The touch location in the coordinate space of the artboard.
+</ParamField>
+
+<ResponseField name="return" type="RiveHitResult" required>
+  The hit result of the touch.
+</ResponseField>
+
+```objc
+- (RiveHitResult)touchBeganAtLocation:(CGPoint)touchLocation;
+```
+
+### touchBeganAtLocation:touchID:
+
+Notifies the state machine that a touch began with a specific touch ID (for multitouch support).
+
+<ParamField path="touchLocation" type="CGPoint" required>
+  The touch location in the coordinate space of the artboard.
+</ParamField>
+
+<ParamField path="touchID" type="int" required>
+  A unique identifier for the touch event.
+</ParamField>
+
+<ResponseField name="return" type="RiveHitResult" required>
+  The hit result of the touch.
+</ResponseField>
+
+```objc
+- (RiveHitResult)touchBeganAtLocation:(CGPoint)touchLocation
+                              touchID:(int)touchID;
+```
+
+### touchMovedAtLocation:
+
+Notifies the state machine that a touch moved.
+
+<ParamField path="touchLocation" type="CGPoint" required>
+  The touch location in the coordinate space of the artboard.
+</ParamField>
+
+<ResponseField name="return" type="RiveHitResult" required>
+  The hit result of the touch.
+</ResponseField>
+
+```objc
+- (RiveHitResult)touchMovedAtLocation:(CGPoint)touchLocation;
+```
+
+### touchMovedAtLocation:touchID:
+
+Notifies the state machine that a touch moved with a specific touch ID.
+
+<ParamField path="touchLocation" type="CGPoint" required>
+  The touch location in the coordinate space of the artboard.
+</ParamField>
+
+<ParamField path="touchID" type="int" required>
+  A unique identifier for the touch event.
+</ParamField>
+
+<ResponseField name="return" type="RiveHitResult" required>
+  The hit result of the touch.
+</ResponseField>
+
+```objc
+- (RiveHitResult)touchMovedAtLocation:(CGPoint)touchLocation
+                              touchID:(int)touchID;
+```
+
+### touchEndedAtLocation:
+
+Notifies the state machine that a touch ended.
+
+<ParamField path="touchLocation" type="CGPoint" required>
+  The touch location in the coordinate space of the artboard.
+</ParamField>
+
+<ResponseField name="return" type="RiveHitResult" required>
+  The hit result of the touch.
+</ResponseField>
+
+```objc
+- (RiveHitResult)touchEndedAtLocation:(CGPoint)touchLocation;
+```
+
+### touchEndedAtLocation:touchID:
+
+Notifies the state machine that a touch ended with a specific touch ID.
+
+<ParamField path="touchLocation" type="CGPoint" required>
+  The touch location in the coordinate space of the artboard.
+</ParamField>
+
+<ParamField path="touchID" type="int" required>
+  A unique identifier for the touch event.
+</ParamField>
+
+<ResponseField name="return" type="RiveHitResult" required>
+  The hit result of the touch.
+</ResponseField>
+
+```objc
+- (RiveHitResult)touchEndedAtLocation:(CGPoint)touchLocation
+                              touchID:(int)touchID;
+```
+
+### touchCancelledAtLocation:
+
+Notifies the state machine that a touch was cancelled.
+
+<ParamField path="touchLocation" type="CGPoint" required>
+  The touch location in the coordinate space of the artboard.
+</ParamField>
+
+<ResponseField name="return" type="RiveHitResult" required>
+  The hit result of the touch.
+</ResponseField>
+
+```objc
+- (RiveHitResult)touchCancelledAtLocation:(CGPoint)touchLocation;
+```
+
+### touchCancelledAtLocation:touchID:
+
+Notifies the state machine that a touch was cancelled with a specific touch ID.
+
+<ParamField path="touchLocation" type="CGPoint" required>
+  The touch location in the coordinate space of the artboard.
+</ParamField>
+
+<ParamField path="touchID" type="int" required>
+  A unique identifier for the touch event.
+</ParamField>
+
+<ResponseField name="return" type="RiveHitResult" required>
+  The hit result of the touch.
+</ResponseField>
+
+```objc
+- (RiveHitResult)touchCancelledAtLocation:(CGPoint)touchLocation
+                                  touchID:(int)touchID;
+```
+
+### touchExitedAtLocation:
+
+Notifies the state machine that a touch exited the artboard.
+
+<ParamField path="touchLocation" type="CGPoint" required>
+  The touch location in the coordinate space of the artboard.
+</ParamField>
+
+<ResponseField name="return" type="RiveHitResult" required>
+  The hit result of the touch.
+</ResponseField>
+
+```objc
+- (RiveHitResult)touchExitedAtLocation:(CGPoint)touchLocation;
+```
+
+### touchExitedAtLocation:touchID:
+
+Notifies the state machine that a touch exited the artboard with a specific touch ID.
+
+<ParamField path="touchLocation" type="CGPoint" required>
+  The touch location in the coordinate space of the artboard.
+</ParamField>
+
+<ParamField path="touchID" type="int" required>
+  A unique identifier for the touch event.
+</ParamField>
+
+<ResponseField name="return" type="RiveHitResult" required>
+  The hit result of the touch.
+</ResponseField>
+
+```objc
+- (RiveHitResult)touchExitedAtLocation:(CGPoint)touchLocation
+                               touchID:(int)touchID;
+```
+
+## Data Binding
+
+### bindViewModelInstance:
+
+Binds an instance of a view model to the state machine for updates. A strong reference to the instance being bound must be made if you wish to reuse instance properties or for observability. By default, the instance will also automatically be bound to the artboard containing the state machine.
+
+<ParamField path="instance" type="RiveDataBindingViewModelInstance*" required>
+  The instance of a view model to bind.
+</ParamField>
+
+```objc
+- (void)bindViewModelInstance:(RiveDataBindingViewModelInstance*)instance
+    NS_SWIFT_NAME(bind(viewModelInstance:));
+```
+
+## Example Usage
+
+```objc
+// Get state machine from artboard
+NSError* error = nil;
+RiveStateMachineInstance* stateMachine = [artboard stateMachineFromName:@"State Machine 1" error:&error];
+
+if (error) {
+    NSLog(@"Failed to get state machine: %@", error);
+    return;
+}
+
+// Get and set inputs
+const RiveSMIBool* hoverInput = [stateMachine getBool:@"Hover"];
+const RiveSMITrigger* clickInput = [stateMachine getTrigger:@"Click"];
+const RiveSMINumber* progressInput = [stateMachine getNumber:@"Progress"];
+
+// Set input values
+[hoverInput setValue:YES];
+[clickInput fire];
+[progressInput setValue:0.75];
+
+// Advance state machine in render loop
+- (void)tick:(double)deltaTime {
+    [stateMachine advanceBy:deltaTime];
+    [artboard advanceBy:deltaTime];
+    
+    // Check for state changes
+    NSInteger stateChanges = [stateMachine stateChangedCount];
+    for (NSInteger i = 0; i < stateChanges; i++) {
+        RiveLayerState* state = [stateMachine stateChangedFromIndex:i error:nil];
+        NSLog(@"State changed: %@", [state name]);
+    }
+    
+    // Check for events
+    NSInteger eventCount = [stateMachine reportedEventCount];
+    for (NSInteger i = 0; i < eventCount; i++) {
+        const RiveEvent* event = [stateMachine reportedEventAt:i];
+        NSLog(@"Event reported: %@", [event name]);
+    }
+}
+
+// Handle touch events
+- (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    UITouch* touch = [touches anyObject];
+    CGPoint location = [touch locationInView:self.view];
+    
+    // Convert to artboard coordinates
+    CGPoint artboardLocation = [self convertToArtboardSpace:location];
+    
+    RiveHitResult result = [stateMachine touchBeganAtLocation:artboardLocation];
+    if (result == hitOpaque) {
+        NSLog(@"Hit opaque area");
+    }
+}
+```

@@ -1,0 +1,96 @@
+---
+title: "RiveSMIBool"
+description: "Boolean input class for controlling Rive state machines in the iOS Runtime."
+---
+
+## Overview
+
+`RiveSMIBool` represents a boolean input in a Rive state machine. Use this class to get and set boolean values that control state transitions.
+
+Inherits from [RiveSMIInput](/api/rive-smi-input).
+
+## Methods
+
+### value
+
+```objc
+- (bool)value;
+```
+
+Gets the current boolean value of the input.
+
+**Returns:** The current value as a `bool` (`true` or `false`)
+
+### setValue
+
+```objc
+- (void)setValue:(bool)newValue;
+```
+
+Sets the boolean value of the input.
+
+**Parameters:**
+- `newValue` - The new boolean value to set
+
+## Usage Example
+
+### Basic Usage
+
+```objc
+// Get a boolean input from the state machine
+RiveSMIBool* isActive = (RiveSMIBool*)[stateMachine inputFromName:@"isActive"];
+
+// Set the value
+[isActive setValue:true];
+
+// Get the current value
+bool currentValue = [isActive value];
+NSLog(@"Is active: %@", currentValue ? @"YES" : @"NO");
+```
+
+### Toggle Example
+
+```objc
+RiveSMIBool* toggleInput = (RiveSMIBool*)[stateMachine inputFromName:@"toggle"];
+
+// Toggle the boolean value
+[toggleInput setValue:![toggleInput value]];
+```
+
+### State Machine Control
+
+```objc
+// Initialize Rive view and get state machine
+RiveStateMachineInstance* stateMachine = [riveView stateMachine:@"State Machine 1"];
+
+// Get boolean inputs
+RiveSMIBool* isPaused = (RiveSMIBool*)[stateMachine inputFromName:@"isPaused"];
+RiveSMIBool* isVisible = (RiveSMIBool*)[stateMachine inputFromName:@"isVisible"];
+
+// Control the animation state
+[isPaused setValue:false];  // Resume animation
+[isVisible setValue:true];  // Make visible
+
+// Advance the state machine
+[stateMachine advanceBy:deltaTime];
+```
+
+## Type Checking
+
+You can verify an input is a boolean before casting:
+
+```objc
+RiveSMIInput* input = [stateMachine inputFromName:@"myInput"];
+
+if ([input isBoolean]) {
+    RiveSMIBool* boolInput = (RiveSMIBool*)input;
+    [boolInput setValue:true];
+}
+```
+
+## See Also
+
+- [RiveSMIInput](/api/rive-smi-input)
+- [RiveSMINumber](/api/rive-smi-number)
+- [RiveSMITrigger](/api/rive-smi-trigger)
+- [RiveStateMachineInstance](/api/rive-state-machine-instance)

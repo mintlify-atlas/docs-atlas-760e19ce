@@ -1,0 +1,251 @@
+---
+title: Installation
+description: Install the Rive iOS Runtime using Swift Package Manager or CocoaPods
+---
+
+# Installation
+
+The Rive iOS Runtime is distributed as a pre-built binary XCFramework and can be integrated into your project using Swift Package Manager or CocoaPods.
+
+## Requirements
+
+Before installing, ensure your project meets the minimum platform requirements:
+
+- **iOS** 14.0 or later
+- **macOS** 13.1 or later
+- **tvOS** 16.0 or later
+- **visionOS** 1.0 or later
+- **Mac Catalyst** 14.0 or later
+- **Swift** 5.9 or later
+- **Xcode** 14.0 or later
+
+## Swift Package Manager (Recommended)
+
+Swift Package Manager is the recommended way to integrate Rive into your project.
+
+<Steps>
+  <Step title="Open Your Project in Xcode">
+    Launch Xcode and open your existing project or create a new one.
+  </Step>
+  
+  <Step title="Add Package Dependency">
+    In Xcode, select **File → Add Package Dependencies...**
+  </Step>
+  
+  <Step title="Enter Repository URL">
+    In the search bar, enter the Rive iOS repository URL:
+    
+    ```
+    https://github.com/rive-app/rive-ios
+    ```
+  </Step>
+  
+  <Step title="Select Version">
+    Choose your dependency rule:
+    
+    - **Up to Next Major Version**: Recommended for most projects (e.g., `6.15.2 < 7.0.0`)
+    - **Exact Version**: Lock to a specific version
+    - **Branch**: Use the latest development version (not recommended for production)
+  </Step>
+  
+  <Step title="Add to Target">
+    Select **RiveRuntime** and click **Add Package**. Ensure it's added to your app target.
+  </Step>
+</Steps>
+
+<Note>
+  The package includes a pre-built `RiveRuntime.xcframework` binary, so no compilation of the runtime is required.
+</Note>
+
+### Package.swift Configuration
+
+If you're building a Swift package or want to add Rive as a dependency programmatically, add it to your `Package.swift`:
+
+```swift Package.swift
+let package = Package(
+    name: "MyApp",
+    platforms: [
+        .iOS(.v14),
+        .macOS(.v13),
+        .tvOS(.v16),
+        .visionOS(.v1)
+    ],
+    dependencies: [
+        .package(
+            url: "https://github.com/rive-app/rive-ios",
+            from: "6.15.2"
+        )
+    ],
+    targets: [
+        .target(
+            name: "MyApp",
+            dependencies: [
+                .product(name: "RiveRuntime", package: "rive-ios")
+            ]
+        )
+    ]
+)
+```
+
+## CocoaPods
+
+If your project uses CocoaPods, you can add Rive to your `Podfile`.
+
+<Steps>
+  <Step title="Create or Open Podfile">
+    If you don't have a `Podfile` yet, create one in your project directory:
+    
+    ```bash
+    pod init
+    ```
+  </Step>
+  
+  <Step title="Add RiveRuntime Pod">
+    Add the following line to your `Podfile`:
+    
+    ```ruby Podfile
+    target 'YourAppTarget' do
+      use_frameworks!
+      
+      pod 'RiveRuntime', '~> 6.15.2'
+    end
+    ```
+  </Step>
+  
+  <Step title="Install Dependencies">
+    Run the following command in your terminal:
+    
+    ```bash
+    pod install
+    ```
+  </Step>
+  
+  <Step title="Open Workspace">
+    From now on, open your project using the `.xcworkspace` file instead of the `.xcodeproj` file:
+    
+    ```bash
+    open YourApp.xcworkspace
+    ```
+  </Step>
+</Steps>
+
+### Platform-Specific Configuration
+
+The RiveRuntime pod supports all Apple platforms. To specify platform requirements:
+
+```ruby Podfile
+platform :ios, '14.0'
+platform :osx, '13.1'
+platform :tvos, '16.0'
+platform :visionos, '1.0'
+
+target 'YourApp' do
+  use_frameworks!
+  pod 'RiveRuntime', '~> 6.15.2'
+end
+```
+
+## Verify Installation
+
+After installing the runtime, verify it's working correctly:
+
+<CodeGroup>
+```swift SwiftUI
+import SwiftUI
+import RiveRuntime
+
+struct ContentView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "truck"
+    )
+    
+    var body: some View {
+        viewModel.view()
+    }
+}
+```
+
+```swift UIKit
+import UIKit
+import RiveRuntime
+
+class ViewController: UIViewController {
+    var viewModel = RiveViewModel(fileName: "truck")
+    
+    override func viewWillAppear(_ animated: Bool) {
+        let riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+}
+```
+</CodeGroup>
+
+<Note>
+  Make sure to add a `.riv` file to your project bundle. You can download sample files from [Rive Community](https://rive.app/community/).
+</Note>
+
+## Troubleshooting
+
+### Build Errors
+
+If you encounter build errors after installation:
+
+1. **Clean Build Folder**: In Xcode, select **Product → Clean Build Folder** (⇧⌘K)
+2. **Reset Package Cache**: For SPM projects, **File → Packages → Reset Package Caches**
+3. **Update CocoaPods**: If using CocoaPods, run `pod update RiveRuntime`
+
+### Import Errors
+
+If Xcode can't find the `RiveRuntime` module:
+
+1. Verify the package is listed in your target's **Frameworks, Libraries, and Embedded Content**
+2. Check that your deployment target meets the minimum requirements
+3. Restart Xcode and rebuild the project
+
+### Version Conflicts
+
+If you have dependency conflicts:
+
+- **SPM**: Check your `Package.resolved` file for version information
+- **CocoaPods**: Run `pod outdated` to see available updates
+- Ensure all dependencies support the same minimum platform versions
+
+## Privacy Manifest
+
+The RiveRuntime includes a privacy manifest (`PrivacyInfo.xcprivacy`) that declares the framework's privacy practices. This is automatically included when you add the package.
+
+<Note>
+  Starting with iOS 17, Apple requires privacy manifests for third-party SDKs. The Rive runtime includes this manifest automatically.
+</Note>
+
+## Next Steps
+
+Now that you've installed the Rive iOS Runtime, continue to the [Quick Start Guide](/quickstart) to create your first animation.
+
+## Updating the Runtime
+
+### Swift Package Manager
+
+To update to the latest version:
+
+1. In Xcode, select **File → Packages → Update to Latest Package Versions**
+2. Or update a specific package: **File → Packages → Update Package**
+
+### CocoaPods
+
+To update to the latest version:
+
+```bash
+pod update RiveRuntime
+```
+
+Or update all pods:
+
+```bash
+pod update
+```
+
+## Migration Guides
+
+If you're upgrading from an older version of the runtime, check out the [migration guides](https://rive.app/docs/runtimes/apple/migrating-from-5.x.x-to-6.x.x) for breaking changes and upgrade instructions.

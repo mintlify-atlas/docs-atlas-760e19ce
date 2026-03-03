@@ -1,0 +1,309 @@
+---
+title: Rive Events
+description: Learn how to handle events fired from your Rive animations
+---
+
+Rive Events allow your animations to communicate with your application code. Events can be triggered from animations or state machines and captured in your iOS app to drive logic, navigation, or other interactions.
+
+## Overview
+
+The Rive iOS Runtime supports two types of events:
+- **General Events**: Custom events with properties you define
+- **Open URL Events**: Special events for opening URLs with target specifications
+
+Events are fired from within Rive animations and captured through delegate callbacks in your iOS application.
+
+## Event Types
+
+### RiveEvent Base Class
+
+All events inherit from `RiveEvent`, which provides:
+
+```swift
+class RiveEvent: NSObject {
+    func name() -> String        // Event name
+    func type() -> Int           // Event type identifier
+    func delay() -> Float        // Delay in seconds since fired
+    func properties() -> [String: Any]  // Custom properties dictionary
+}
+```
+
+### RiveGeneralEvent
+
+General events are custom events you define in the Rive editor:
+
+```swift
+class RiveGeneralEvent: RiveEvent {
+    // Inherits all RiveEvent properties
+}
+```
+
+### RiveOpenUrlEvent
+
+Special events for opening URLs:
+
+```swift
+class RiveOpenUrlEvent: RiveEvent {
+    func url() -> String      // URL to open
+    func target() -> String   // Target window/frame
+}
+```
+
+## Setting Up Event Handling
+
+### Implementing the Delegate
+
+To receive events, implement the `RiveStateMachineDelegate` protocol:
+
+```swift
+import RiveRuntime
+
+class RiveEventsViewModel: RiveViewModel {
+    override init() {
+        super.init(fileName: "rating_animation")
+    }
+    
+    @objc func onRiveEventReceived(onRiveEvent riveEvent: RiveEvent) {
+        print("Event Name: \(riveEvent.name())")
+        print("Event Type: \(riveEvent.type())")
+        
+        // Handle specific event types
+        if let openUrlEvent = riveEvent as? RiveOpenUrlEvent {
+            handleOpenUrl(openUrlEvent)
+        } else if let generalEvent = riveEvent as? RiveGeneralEvent {
+            handleGeneralEvent(generalEvent)
+        }
+    }
+}
+```
+
+## Handling General Events
+
+General events can carry custom properties:
+
+```swift
+func handleGeneralEvent(_ event: RiveGeneralEvent) {
+    let properties = event.properties()
+    
+    // Access custom properties
+    if let message = properties["message"] as? String {
+        print("Message: \(message)")
+    }
+    
+    if let score = properties["score"] as? Int {
+        print("Score: \(score)")
+    }
+    
+    if let isComplete = properties["complete"] as? Bool {
+        print("Complete: \(isComplete)")
+    }
+}
+```
+
+## Handling Open URL Events
+
+Open URL events are designed for navigation:
+
+```swift
+func handleOpenUrl(_ event: RiveOpenUrlEvent) {
+    print("URL: \(event.url())")
+    print("Target: \(event.target())")
+    
+    if let url = URL(string: event.url()) {
+        #if os(iOS) || os(visionOS) || os(tvOS)
+        UIApplication.shared.open(url)
+        #else
+        NSWorkspace.shared.open(url)
+        #endif
+    }
+}
+```
+
+## Complete SwiftUI Example
+
+Here's a full example showing event handling in SwiftUI:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct EventsView: View {
+    @StateObject private var rvm = RiveEventsViewModel()
+    
+    var body: some View {
+        VStack {
+            rvm.view()
+                .frame(width: 400, height: 400)
+            
+            Text("Event Message")
+                .font(.headline)
+                .padding(.bottom, 10)
+            
+            Text(rvm.eventText)
+                .padding()
+                .background(rvm.eventText.isEmpty ? Color.clear : Color.black)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+        }
+    }
+}
+
+class RiveEventsViewModel: RiveViewModel {
+    @Published var eventText = ""
+    
+    init() {
+        super.init(fileName: "rating_animation")
+    }
+    
+    func view() -> some View {
+        return super.view()
+            .frame(width: 400, height: 400, alignment: .center)
+    }
+    
+    @objc func onRiveEventReceived(onRiveEvent riveEvent: RiveEvent) {
+        debugPrint("Event Name: \(riveEvent.name())")
+        debugPrint("Event Type: \(riveEvent.type())")
+        
+        if let openUrlEvent = riveEvent as? RiveOpenUrlEvent {
+            debugPrint("Open URL Event Properties: \(openUrlEvent.properties())")
+            if let url = URL(string: openUrlEvent.url()) {
+                #if os(iOS) || os(visionOS) || os(tvOS)
+                UIApplication.shared.open(url)
+                #else
+                NSWorkspace.shared.open(url)
+                #endif
+            }
+        } else if let generalEvent = riveEvent as? RiveGeneralEvent {
+            let properties = generalEvent.properties()
+            debugPrint("General Event Properties: \(properties)")
+            
+            if let msg = properties["message"] as? String {
+                eventText = msg
+            }
+        }
+    }
+}
+```
+
+## UIKit Example
+
+```swift
+import UIKit
+import RiveRuntime
+
+class EventsViewController: UIViewController {
+    @IBOutlet weak var riveView: RiveView!
+    @IBOutlet weak var messageLabel: UILabel!
+    
+    var viewModel: EventViewModel!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        viewModel = EventViewModel()
+        viewModel.delegate = self
+        viewModel.setView(riveView)
+    }
+}
+
+extension EventsViewController: RiveStateMachineDelegate {
+    func onRiveEventReceived(onRiveEvent riveEvent: RiveEvent) {
+        if let generalEvent = riveEvent as? RiveGeneralEvent,
+           let message = generalEvent.properties()["message"] as? String {
+            messageLabel.text = message
+        }
+    }
+}
+```
+
+## Event Timing
+
+The `delay()` method returns the time delay in seconds since the event was fired:
+
+```swift
+@objc func onRiveEventReceived(onRiveEvent riveEvent: RiveEvent) {
+    let delay = riveEvent.delay()
+    print("Event fired \(delay) seconds ago")
+}
+```
+
+This is particularly useful for events fired from timeline animations where timing precision matters.
+
+## Common Event Properties
+
+Common property names used in events:
+
+```swift
+let properties = event.properties()
+
+// Strings
+if let message = properties["message"] as? String { }
+if let action = properties["action"] as? String { }
+
+// Numbers
+if let score = properties["score"] as? Int { }
+if let value = properties["value"] as? Double { }
+
+// Booleans
+if let isComplete = properties["complete"] as? Bool { }
+if let isEnabled = properties["enabled"] as? Bool { }
+```
+
+## Best Practices
+
+1. **Event Names**: Use descriptive event names in the Rive editor that match your app's domain
+2. **Type Checking**: Always check event types before casting to specific event classes
+3. **Property Keys**: Document property keys used in your events for consistency
+4. **Error Handling**: Safely unwrap optional properties to avoid crashes
+5. **Threading**: Event callbacks are called on the main thread, safe for UI updates
+6. **State Management**: Use `@Published` properties to propagate event data to SwiftUI views
+
+## Event Use Cases
+
+### User Interactions
+```swift
+// Handle button clicks from animation
+if event.name() == "buttonClicked" {
+    if let buttonId = event.properties()["id"] as? String {
+        handleButtonClick(buttonId)
+    }
+}
+```
+
+### Navigation
+```swift
+// Navigate based on animation events
+if let openUrlEvent = riveEvent as? RiveOpenUrlEvent {
+    navigateToScreen(url: openUrlEvent.url())
+}
+```
+
+### Game Logic
+```swift
+// Process game events
+if event.name() == "scoreChanged" {
+    if let points = event.properties()["points"] as? Int {
+        updateScore(by: points)
+    }
+}
+```
+
+### Analytics
+```swift
+// Track animation interactions
+Analytics.logEvent(event.name(), parameters: event.properties())
+```
+
+## Creating Events in Rive
+
+In the Rive editor:
+1. Select a state or transition in your state machine
+2. Add an event in the Inspector panel
+3. Choose event type (General or Open URL)
+4. Set event name and properties
+5. Configure timing and conditions
+
+## See Also
+
+- [State Machines](/concepts/state-machines) - Working with state machines
+- [Data Binding](/advanced/data-binding) - Alternative for data communication

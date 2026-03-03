@@ -1,0 +1,88 @@
+---
+title: "RiveAlignment"
+description: "Enum that defines how a Rive animation is aligned within its container view"
+---
+
+## Overview
+
+`RiveAlignment` is an enumeration that specifies how a Rive animation should be positioned within its container. It works in conjunction with `RiveFit` to control both sizing and positioning.
+
+## Definition
+
+```swift
+typedef NS_ENUM(NSInteger, RiveAlignment) {
+    topLeft,
+    topCenter,
+    topRight,
+    centerLeft,
+    center,
+    centerRight,
+    bottomLeft,
+    bottomCenter,
+    bottomRight
+}
+```
+
+## Cases
+
+### topLeft
+Aligns the animation to the top-left corner of the container.
+
+### topCenter
+Aligns the animation to the top-center of the container.
+
+### topRight
+Aligns the animation to the top-right corner of the container.
+
+### centerLeft
+Aligns the animation to the center-left of the container.
+
+### center
+Aligns the animation to the center of the container. This is the default alignment.
+
+### centerRight
+Aligns the animation to the center-right of the container.
+
+### bottomLeft
+Aligns the animation to the bottom-left corner of the container.
+
+### bottomCenter
+Aligns the animation to the bottom-center of the container.
+
+### bottomRight
+Aligns the animation to the bottom-right corner of the container.
+
+## Usage
+
+```swift
+// UIKit with RiveViewModel
+let viewModel = RiveViewModel(
+    fileName: "animation",
+    fit: .contain,
+    alignment: .center
+)
+
+// SwiftUI with RiveViewModel
+RiveViewModel(fileName: "animation").alignment = .topLeft
+
+// Changing alignment dynamically
+viewModel.alignment = .bottomRight
+```
+
+## Usage with RiveRenderer
+
+```swift
+let renderer = RiveRenderer(context: context)
+renderer.align(
+    with: containerRect,
+    withContentRect: contentRect,
+    withAlignment: .center,
+    withFit: .contain
+)
+```
+
+## Related
+
+- [RiveFit](/api/rive-fit) - Controls how the animation is scaled within its container
+- [RiveViewModel](/api/rive-view-model) - View model that uses RiveAlignment for rendering configuration
+- [RiveView](/api/rive-view) - View that uses alignment for rendering

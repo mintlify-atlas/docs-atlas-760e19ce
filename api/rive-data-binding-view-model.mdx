@@ -1,0 +1,123 @@
+---
+title: "RiveDataBindingViewModel"
+description: "API reference for the RiveDataBindingViewModel class in the Rive iOS Runtime SDK"
+---
+
+## Overview
+
+An object that represents a View Model of a Rive file. Use this class to access view model instances and their properties for data binding at runtime.
+
+## Properties
+
+### name
+
+```objc
+@property(nonatomic, readonly) NSString* name;
+```
+
+The name of the view model.
+
+### instanceCount
+
+```objc
+@property(nonatomic, readonly) NSUInteger instanceCount;
+```
+
+The number of instances in the view model.
+
+### instanceNames
+
+```objc
+@property(nonatomic, readonly) NSArray<NSString*>* instanceNames;
+```
+
+An array of names of all instances in the view model.
+
+### propertyCount
+
+```objc
+@property(nonatomic, readonly) NSUInteger propertyCount;
+```
+
+The number of all properties in the view model.
+
+### properties
+
+```objc
+@property(nonatomic, readonly) NSArray<RiveDataBindingViewModelInstancePropertyData*>* properties;
+```
+
+An array of property data of all properties in the view model.
+
+## Methods
+
+### createInstanceFromIndex:
+
+```objc
+- (nullable RiveDataBindingViewModelInstance*)createInstanceFromIndex:(NSUInteger)index;
+```
+
+Creates a new instance to bind from a given index.
+
+**Parameters:**
+- `index` - The index of an instance within the view model. The index starts at 0, where 0 is the first instance that appears in the "Data Bind" panel's instances dropdown.
+
+**Returns:** A `RiveDataBindingViewModelInstance` if the index is valid, otherwise `nil`.
+
+<Note>
+A strong reference to this instance must be maintained if it is being bound to a state machine or artboard, or for observability. Fetching a new instance from the same model, if not bound, will not update its properties when properties are updated.
+</Note>
+
+### createInstanceFromName:
+
+```objc
+- (nullable RiveDataBindingViewModelInstance*)createInstanceFromName:(NSString*)name;
+```
+
+Creates a new instance to bind from a given name.
+
+**Parameters:**
+- `name` - The name of an instance within the view model. The name must match the name of an instance in the "Data Bind" panel's instances dropdown, where the instance has been exported.
+
+**Returns:** A `RiveDataBindingViewModelInstance` if an instance with the given name exists, otherwise `nil`.
+
+<Note>
+A strong reference to this instance must be maintained if it is being bound to a state machine or artboard, or for observability. Fetching a new instance from the same model, if not bound, will not update its properties when properties are updated.
+</Note>
+
+### createDefaultInstance
+
+```objc
+- (nullable RiveDataBindingViewModelInstance*)createDefaultInstance;
+```
+
+Creates a new default instance to bind from the view model.
+
+This is the instance marked as "Default" in the "Data Bind" instances dropdown when an artboard is selected.
+
+**Returns:** A `RiveDataBindingViewModelInstance` representing the default instance, or `nil` if no default instance exists.
+
+<Note>
+A strong reference to this instance must be maintained if it is being bound to a state machine or artboard, or for observability. Fetching a new instance from the same model, if not bound, will not update its properties when properties are updated.
+</Note>
+
+### createInstance
+
+```objc
+- (nullable RiveDataBindingViewModelInstance*)createInstance;
+```
+
+Creates a new instance with Rive default values from the view model to bind to an artboard and/or state machine.
+
+**Default values:**
+- **String**: `""`
+- **Number**: `0`
+- **Boolean**: `false`
+- **Color**: `ARGB(0, 0, 0, 0)`
+- **Enum**: An enum's first value
+
+**Returns:** A `RiveDataBindingViewModelInstance` with default values, or `nil` if the instance cannot be created.
+
+<Note>
+A strong reference to this instance must be maintained if it is being bound to a state machine or artboard, or for observability. Fetching a new instance from the same model, if not bound, will not update its properties when properties are updated.
+</Note>

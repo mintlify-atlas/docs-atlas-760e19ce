@@ -1,0 +1,71 @@
+---
+title: "RiveFit"
+description: "Enum that defines how a Rive animation fits within its container view"
+---
+
+## Overview
+
+`RiveFit` is an enumeration that specifies how a Rive animation should be scaled and positioned within its container. It controls the sizing behavior of the animation relative to the available space.
+
+## Definition
+
+```swift
+typedef NS_ENUM(NSInteger, RiveFit) {
+    fill,
+    contain,
+    cover,
+    fitHeight,
+    fitWidth,
+    scaleDown,
+    noFit,
+    layout
+}
+```
+
+## Cases
+
+### fill
+Stretches the animation to fill the container, potentially distorting the aspect ratio.
+
+### contain
+Scales the animation to fit entirely within the container while maintaining aspect ratio. This is the default fit mode.
+
+### cover
+Scales the animation to cover the entire container while maintaining aspect ratio. Parts of the animation may be clipped.
+
+### fitHeight
+Scales the animation to match the container's height while maintaining aspect ratio.
+
+### fitWidth
+Scales the animation to match the container's width while maintaining aspect ratio.
+
+### scaleDown
+Scales the animation down if it's larger than the container, but never scales up. Maintains aspect ratio.
+
+### noFit
+Does not apply any scaling to the animation.
+
+### layout
+Uses the layout defined within the Rive animation itself.
+
+## Usage
+
+```swift
+// UIKit with RiveViewModel
+let viewModel = RiveViewModel(
+    fileName: "animation",
+    fit: .contain,
+    alignment: .center
+)
+
+// SwiftUI with RiveViewModel
+RiveViewModel(fileName: "animation").fit = .cover
+
+// Changing fit mode dynamically
+viewModel.fit = .fitWidth
+```
+
+## Related
+
+- [RiveAlignment](/api/rive-alignment) - Controls how the animation is positioned within its container
+- [RiveViewModel](/api/rive-view-model) - View model that uses RiveFit for rendering configuration

@@ -1,0 +1,437 @@
+---
+title: Using Rive with AppKit
+description: Learn how to integrate Rive animations into macOS AppKit applications
+---
+
+Rive provides full AppKit support for macOS applications through the same `RiveViewModel` and `RiveView` APIs used on other platforms. This guide covers macOS-specific integration patterns.
+
+## Quick Start
+
+Using Rive in SwiftUI on macOS is identical to iOS:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct ContentView: View {
+    var body: some View {
+        VStack {
+            RiveViewModel(fileName: "magic_8-ball_v2").view()
+        }
+        .padding()
+    }
+}
+```
+
+## AppKit Integration
+
+### Programmatic Setup
+
+```swift
+import Cocoa
+import RiveRuntime
+
+class AnimationViewController: NSViewController {
+    private var viewModel: RiveViewModel!
+    private var riveView: RiveView!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupRiveAnimation()
+    }
+    
+    private func setupRiveAnimation() {
+        viewModel = RiveViewModel(fileName: "truck")
+        riveView = viewModel.createRiveView()
+        
+        view.addSubview(riveView)
+        
+        // Setup constraints
+        riveView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            riveView.topAnchor.constraint(equalTo: view.topAnchor),
+            riveView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            riveView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            riveView.heightAnchor.constraint(equalToConstant: 400)
+        ])
+    }
+}
+```
+
+### Using Interface Builder
+
+**1. Add an NSView to your XIB or Storyboard**
+
+**2. Set the custom class:**
+- Select the view in Interface Builder
+- Open the Identity Inspector
+- Set Class to `RiveView`
+- Set Module to `RiveRuntime`
+
+**3. Create an IBOutlet and configure:**
+
+```swift
+import Cocoa
+import RiveRuntime
+
+class MainViewController: NSViewController {
+    @IBOutlet weak var riveView: RiveView!
+    var viewModel = RiveViewModel(fileName: "animation")
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        viewModel.setView(riveView)
+    }
+}
+```
+
+## Mouse Events
+
+Rive automatically handles mouse events on macOS:
+
+```swift
+import Cocoa
+import RiveRuntime
+
+class InteractiveViewController: NSViewController, RiveStateMachineDelegate {
+    private var viewModel: RiveViewModel!
+    private var riveView: RiveView!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        viewModel = RiveViewModel(
+            fileName: "hero_editor",
+            stateMachineName: "State Machine 1"
+        )
+        riveView = viewModel.createRiveView()
+        
+        view.addSubview(riveView)
+        riveView.frame = view.bounds
+        riveView.autoresizingMask = [.width, .height]
+    }
+    
+    // These delegate methods are automatically called on mouse events
+    func touchBegan(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+        print("Mouse down at: \(location)")
+    }
+    
+    func touchMoved(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+        print("Mouse moved at: \(location)")
+    }
+    
+    func touchEnded(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+        print("Mouse up at: \(location)")
+    }
+}
+```
+
+## Window and Screen Management
+
+### Display Scale Factor
+
+Rive automatically handles Retina displays and window movements between screens with different resolutions:
+
+```swift
+class ScaleAwareViewController: NSViewController {
+    private var viewModel: RiveViewModel!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        viewModel = RiveViewModel(
+            fileName: "layout_test",
+            fit: .layout
+        )
+        
+        let riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        riveView.frame = view.bounds
+        
+        // Rive automatically detects screen changes and adjusts
+        // the layout scale factor for proper rendering
+    }
+}
+```
+
+### Custom Scale Factor
+
+For `.layout` fit mode, you can override the automatic scale detection:
+
+```swift
+viewModel.layoutScaleFactor = 2.0  // Force 2x scaling
+```
+
+To use automatic detection:
+
+```swift
+viewModel.layoutScaleFactor = RiveViewModel.layoutScaleFactorAutomatic
+```
+
+## Frame Rate Control (macOS 14+)
+
+### Preferred Frame Rate
+
+```swift
+if #available(macOS 14, *) {
+    viewModel.setPreferredFramesPerSecond(preferredFramesPerSecond: 30)
+}
+```
+
+### Frame Rate Range
+
+```swift
+if #available(macOS 14, *) {
+    viewModel.setPreferredFrameRateRange(
+        preferredFrameRateRange: CAFrameRateRange(
+            minimum: 30,
+            maximum: 120,
+            preferred: 60
+        )
+    )
+}
+```
+
+## Controlling Animations
+
+### Playback Controls
+
+```swift
+class PlaybackViewController: NSViewController {
+    var viewModel = RiveViewModel(fileName: "animation")
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        riveView.frame = view.bounds
+    }
+    
+    @IBAction func playClicked(_ sender: NSButton) {
+        viewModel.play()
+    }
+    
+    @IBAction func pauseClicked(_ sender: NSButton) {
+        viewModel.pause()
+    }
+    
+    @IBAction func stopClicked(_ sender: NSButton) {
+        viewModel.stop()
+    }
+}
+```
+
+### State Machine Inputs
+
+```swift
+class StateMachineViewController: NSViewController {
+    var viewModel = RiveViewModel(
+        fileName: "skills",
+        stateMachineName: "Designer's Test"
+    )
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        riveView.frame = view.bounds
+    }
+    
+    @IBAction func levelChanged(_ sender: NSSegmentedControl) {
+        viewModel.setInput("Level", value: Double(sender.selectedSegment))
+    }
+    
+    @IBAction func triggerAction(_ sender: NSButton) {
+        viewModel.triggerInput("action")
+    }
+}
+```
+
+## Layout Configuration
+
+### Fit and Alignment
+
+```swift
+class LayoutViewController: NSViewController {
+    var viewModel = RiveViewModel(fileName: "truck")
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        riveView.frame = view.bounds
+    }
+    
+    @IBAction func fitChanged(_ sender: NSPopUpButton) {
+        let fitOptions: [RiveFit] = [
+            .contain, .fill, .cover, .fitWidth, 
+            .fitHeight, .scaleDown, .layout, .noFit
+        ]
+        viewModel.fit = fitOptions[sender.indexOfSelectedItem]
+    }
+    
+    @IBAction func alignmentChanged(_ sender: NSPopUpButton) {
+        let alignments: [RiveAlignment] = [
+            .topLeft, .topCenter, .topRight,
+            .centerLeft, .center, .centerRight,
+            .bottomLeft, .bottomCenter, .bottomRight
+        ]
+        viewModel.alignment = alignments[sender.indexOfSelectedItem]
+    }
+}
+```
+
+## SwiftUI on macOS
+
+The SwiftUI API is identical to iOS:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct MacAnimationView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "animation",
+        fit: .contain
+    )
+    @State private var isPlaying = true
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+                .frame(height: 400)
+            
+            HStack {
+                Button(isPlaying ? "Pause" : "Play") {
+                    if isPlaying {
+                        viewModel.pause()
+                    } else {
+                        viewModel.play()
+                    }
+                    isPlaying.toggle()
+                }
+                
+                Button("Reset") {
+                    viewModel.reset()
+                    viewModel.play()
+                    isPlaying = true
+                }
+            }
+            .padding()
+        }
+    }
+}
+```
+
+## View Controllers vs SwiftUI
+
+<Tabs>
+  <Tab title="AppKit (NSViewController)">
+    ```swift
+    import Cocoa
+    import RiveRuntime
+
+    class RiveViewController: NSViewController {
+        private var viewModel: RiveViewModel!
+        
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            viewModel = RiveViewModel(fileName: "animation")
+            let riveView = viewModel.createRiveView()
+            view.addSubview(riveView)
+            riveView.frame = view.bounds
+            riveView.autoresizingMask = [.width, .height]
+        }
+        
+        override func viewWillDisappear() {
+            super.viewWillDisappear()
+            viewModel.pause()
+        }
+    }
+    ```
+  </Tab>
+
+  <Tab title="SwiftUI">
+    ```swift
+    import SwiftUI
+    import RiveRuntime
+
+    struct RiveContentView: View {
+        @StateObject private var viewModel = RiveViewModel(
+            fileName: "animation"
+        )
+        
+        var body: some View {
+            viewModel.view()
+                .onDisappear {
+                    viewModel.pause()
+                }
+        }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Lifecycle Management
+
+```swift
+class AnimationViewController: NSViewController {
+    var viewModel: RiveViewModel?
+    var riveView: RiveView?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        viewModel = RiveViewModel(fileName: "animation")
+        riveView = viewModel?.createRiveView()
+        if let riveView = riveView {
+            view.addSubview(riveView)
+            riveView.frame = view.bounds
+        }
+    }
+    
+    override func viewWillDisappear() {
+        super.viewWillDisappear()
+        viewModel?.pause()
+    }
+    
+    deinit {
+        viewModel?.stop()
+        viewModel?.deregisterView()
+    }
+}
+```
+
+## Best Practices
+
+1. **Handle Window Movement** - Rive automatically handles screen changes, but be aware of performance on lower-resolution displays
+2. **Use Autoresizing Masks or Constraints** - Ensure your RiveView resizes properly with the window
+3. **Pause When Inactive** - Pause animations in `viewWillDisappear` to conserve resources
+4. **Frame Rate Optimization** - Use frame rate controls (macOS 14+) for better performance on battery
+5. **Memory Management** - Clean up view models in `deinit`
+6. **Dark Mode Support** - Rive animations respect the system appearance automatically
+
+## Platform-Specific Considerations
+
+### Mouse vs Touch
+
+- macOS uses mouse events (`mouseDown`, `mouseMoved`, `mouseUp`)
+- Delegate methods use generic names (`touchBegan`, `touchMoved`, `touchEnded`)
+- The same delegate protocol works across all platforms
+
+### Display Sync
+
+- macOS 14+ uses `CADisplayLink` for smooth rendering
+- Earlier versions use `CVDisplayLink`
+- Both provide synchronized updates with the display refresh rate
+
+### Performance
+
+- ProMotion displays (120Hz) are automatically supported on compatible Macs
+- Consider setting frame rate limits for battery-powered devices
+- Use `.layout` fit mode carefully on high-resolution displays
+
+## Next Steps
+
+- [Loading Assets](/guides/loading-assets) - Learn how to load .riv files from different sources
+- [Touch Events](/guides/touch-events) - Handle mouse and touch interactions (same API across platforms)
+- [RiveViewModel API](/api/rive-view-model) - Complete API documentation

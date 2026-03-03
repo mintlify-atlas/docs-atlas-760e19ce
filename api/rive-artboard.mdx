@@ -1,0 +1,415 @@
+---
+title: "RiveArtboard"
+description: "Reference for the RiveArtboard class, which represents a single artboard within a Rive file and provides access to animations, state machines, and rendering."
+---
+
+## Overview
+
+`RiveArtboard` represents a single artboard within a Rive file. An artboard is a container for animations, state machines, and graphics. It provides methods for accessing animations, state machines, text runs, and controlling playback.
+
+## Properties
+
+<ResponseField name="volume" type="float" required>
+  Audio volume for the artboard. Ranges from 0.0 (muted) to 1.0 (full volume).
+</ResponseField>
+
+<ResponseField name="didChange" type="BOOL" required>
+  Indicates whether the artboard has changed since the last frame (read-only).
+</ResponseField>
+
+## Artboard Information
+
+### name
+
+Returns the name of the artboard.
+
+<ResponseField name="return" type="NSString*" required>
+  The artboard's name.
+</ResponseField>
+
+```objc
+- (NSString*)name;
+```
+
+### bounds
+
+Returns the bounds of the artboard.
+
+<ResponseField name="return" type="CGRect" required>
+  The artboard's bounds as a CGRect.
+</ResponseField>
+
+```objc
+- (CGRect)bounds;
+```
+
+## Dimensions
+
+### width
+
+Returns the width of the artboard.
+
+<ResponseField name="return" type="double" required>
+  The artboard's width.
+</ResponseField>
+
+```objc
+- (double)width;
+```
+
+### height
+
+Returns the height of the artboard.
+
+<ResponseField name="return" type="double" required>
+  The artboard's height.
+</ResponseField>
+
+```objc
+- (double)height;
+```
+
+### setWidth:
+
+Sets the width of the artboard.
+
+<ParamField path="value" type="double" required>
+  The new width value.
+</ParamField>
+
+```objc
+- (void)setWidth:(double)value;
+```
+
+### setHeight:
+
+Sets the height of the artboard.
+
+<ParamField path="value" type="double" required>
+  The new height value.
+</ParamField>
+
+```objc
+- (void)setHeight:(double)value;
+```
+
+### resetArtboardSize
+
+Resets the artboard to its original size as defined in the Rive file.
+
+```objc
+- (void)resetArtboardSize;
+```
+
+## State Machine Inputs
+
+### getBool:path:
+
+Retrieves a boolean input from a state machine.
+
+<ParamField path="name" type="NSString*" required>
+  The name of the boolean input.
+</ParamField>
+
+<ParamField path="path" type="NSString*" required>
+  The path to the nested artboard containing the input.
+</ParamField>
+
+<ResponseField name="return" type="const RiveSMIBool*" required>
+  The boolean input, or nil if not found.
+</ResponseField>
+
+```objc
+- (const RiveSMIBool*)getBool:(NSString*)name path:(NSString*)path;
+```
+
+### getTrigger:path:
+
+Retrieves a trigger input from a state machine.
+
+<ParamField path="name" type="NSString*" required>
+  The name of the trigger input.
+</ParamField>
+
+<ParamField path="path" type="NSString*" required>
+  The path to the nested artboard containing the input.
+</ParamField>
+
+<ResponseField name="return" type="const RiveSMITrigger*" required>
+  The trigger input, or nil if not found.
+</ResponseField>
+
+```objc
+- (const RiveSMITrigger*)getTrigger:(NSString*)name path:(NSString*)path;
+```
+
+### getNumber:path:
+
+Retrieves a number input from a state machine.
+
+<ParamField path="name" type="NSString*" required>
+  The name of the number input.
+</ParamField>
+
+<ParamField path="path" type="NSString*" required>
+  The path to the nested artboard containing the input.
+</ParamField>
+
+<ResponseField name="return" type="const RiveSMINumber*" required>
+  The number input, or nil if not found.
+</ResponseField>
+
+```objc
+- (const RiveSMINumber*)getNumber:(NSString*)name path:(NSString*)path;
+```
+
+## Animations
+
+### animationCount
+
+Returns the number of animations in the artboard.
+
+<ResponseField name="return" type="NSInteger" required>
+  The number of animations.
+</ResponseField>
+
+```objc
+- (NSInteger)animationCount;
+```
+
+### animationNames
+
+Returns the names of all animations in the artboard.
+
+<ResponseField name="return" type="NSArray<NSString*>*" required>
+  Array of animation names.
+</ResponseField>
+
+```objc
+- (NSArray<NSString*>*)animationNames;
+```
+
+### animationFromIndex:error:
+
+Returns an animation instance by its index.
+
+<ParamField path="index" type="NSInteger" required>
+  Zero-based index of the animation.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveLinearAnimationInstance*" required>
+  The animation instance at the specified index, or nil if an error occurs.
+</ResponseField>
+
+```objc
+- (RiveLinearAnimationInstance* __nullable)animationFromIndex:(NSInteger)index
+                                                        error:(NSError**)error;
+```
+
+### animationFromName:error:
+
+Returns an animation instance by its name.
+
+<ParamField path="name" type="NSString*" required>
+  Name of the animation as defined in the Rive file.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveLinearAnimationInstance*" required>
+  The animation instance with the specified name, or nil if an error occurs.
+</ResponseField>
+
+```objc
+- (RiveLinearAnimationInstance* __nullable)animationFromName:(NSString*)name
+                                                       error:(NSError**)error;
+```
+
+## State Machines
+
+### stateMachineCount
+
+Returns the number of state machines in the artboard.
+
+<ResponseField name="return" type="NSInteger" required>
+  The number of state machines.
+</ResponseField>
+
+```objc
+- (NSInteger)stateMachineCount;
+```
+
+### stateMachineNames
+
+Returns the names of all state machines in the artboard.
+
+<ResponseField name="return" type="NSArray<NSString*>*" required>
+  Array of state machine names.
+</ResponseField>
+
+```objc
+- (NSArray<NSString*>*)stateMachineNames;
+```
+
+### stateMachineFromIndex:error:
+
+Returns a state machine instance by its index.
+
+<ParamField path="index" type="NSInteger" required>
+  Zero-based index of the state machine.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveStateMachineInstance*" required>
+  The state machine instance at the specified index, or nil if an error occurs.
+</ResponseField>
+
+```objc
+- (RiveStateMachineInstance* __nullable)stateMachineFromIndex:(NSInteger)index
+                                                        error:(NSError**)error;
+```
+
+### stateMachineFromName:error:
+
+Returns a state machine instance by its name.
+
+<ParamField path="name" type="NSString*" required>
+  Name of the state machine as defined in the Rive file.
+</ParamField>
+
+<ParamField path="error" type="NSError**" required>
+  Pointer to an error object that will be set if the operation fails.
+</ParamField>
+
+<ResponseField name="return" type="RiveStateMachineInstance*" required>
+  The state machine instance with the specified name, or nil if an error occurs.
+</ResponseField>
+
+```objc
+- (RiveStateMachineInstance* __nullable)stateMachineFromName:(NSString*)name
+                                                       error:(NSError**)error;
+```
+
+### defaultStateMachine
+
+Returns the default state machine for the artboard.
+
+<ResponseField name="return" type="RiveStateMachineInstance*" required>
+  The default state machine instance, or nil if none exists.
+</ResponseField>
+
+```objc
+- (RiveStateMachineInstance* __nullable)defaultStateMachine;
+```
+
+## Text Runs
+
+### textRun:
+
+Retrieves a text run by name.
+
+<ParamField path="name" type="NSString*" required>
+  The name of the text run.
+</ParamField>
+
+<ResponseField name="return" type="RiveTextValueRun*" required>
+  The text run, or nil if not found.
+</ResponseField>
+
+```objc
+- (RiveTextValueRun* __nullable)textRun:(NSString*)name;
+```
+
+### textRun:path:
+
+Retrieves a text run by name and path.
+
+<ParamField path="name" type="NSString*" required>
+  The name of the text run.
+</ParamField>
+
+<ParamField path="path" type="NSString*" required>
+  The path to the nested artboard containing the text run.
+</ParamField>
+
+<ResponseField name="return" type="RiveTextValueRun*" required>
+  The text run, or nil if not found.
+</ResponseField>
+
+```objc
+- (RiveTextValueRun* __nullable)textRun:(NSString*)name path:(NSString*)path;
+```
+
+## Playback and Rendering
+
+### advanceBy:
+
+Advances the artboard's animation state by the specified time.
+
+<ParamField path="elapsedSeconds" type="double" required>
+  The time in seconds to advance the animation.
+</ParamField>
+
+```objc
+- (void)advanceBy:(double)elapsedSeconds;
+```
+
+### draw:
+
+Draws the artboard using the specified renderer.
+
+<ParamField path="renderer" type="RiveRenderer*" required>
+  The renderer to use for drawing.
+</ParamField>
+
+```objc
+- (void)draw:(RiveRenderer*)renderer;
+```
+
+## Data Binding
+
+### bindViewModelInstance:
+
+Binds an instance of a view model to the artboard for updates. A strong reference to the instance being bound must be made if you wish to reuse instance properties or for observability. The same instance must also be bound to a state machine, if one exists.
+
+<ParamField path="instance" type="RiveDataBindingViewModelInstance*" required>
+  The instance of a view model to bind.
+</ParamField>
+
+```objc
+- (void)bindViewModelInstance:(RiveDataBindingViewModelInstance*)instance
+    NS_SWIFT_NAME(bind(viewModelInstance:));
+```
+
+## Example Usage
+
+```objc
+// Get artboard from file
+NSError* error = nil;
+RiveArtboard* artboard = [file artboard:&error];
+
+// Get artboard dimensions
+double width = [artboard width];
+double height = [artboard height];
+
+// Get animation by name
+RiveLinearAnimationInstance* animation = [artboard animationFromName:@"idle" error:&error];
+
+// Get state machine
+RiveStateMachineInstance* stateMachine = [artboard stateMachineFromName:@"State Machine 1" error:&error];
+
+// Advance artboard animation
+[artboard advanceBy:deltaTime];
+
+// Draw artboard
+[artboard draw:renderer];
+```

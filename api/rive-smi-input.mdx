@@ -1,0 +1,83 @@
+---
+title: "RiveSMIInput"
+description: "Base class for State Machine input types in the Rive iOS Runtime."
+---
+
+## Overview
+
+`RiveSMIInput` is the base class for all State Machine input types. It provides common functionality for identifying and working with inputs in Rive state machines.
+
+All input types inherit from this class:
+- [RiveSMIBool](/api/rive-smi-bool) - Boolean inputs
+- [RiveSMINumber](/api/rive-smi-number) - Number inputs  
+- [RiveSMITrigger](/api/rive-smi-trigger) - Trigger inputs
+
+## Type Checking Methods
+
+### name
+
+```objc
+- (NSString*)name;
+```
+
+Returns the name of the input as defined in the Rive editor.
+
+**Returns:** The input's name as an `NSString`
+
+### isBoolean
+
+```objc
+- (bool)isBoolean;
+```
+
+Checks if this input is a boolean type.
+
+**Returns:** `true` if the input is a `RiveSMIBool`, `false` otherwise
+
+### isTrigger
+
+```objc
+- (bool)isTrigger;
+```
+
+Checks if this input is a trigger type.
+
+**Returns:** `true` if the input is a `RiveSMITrigger`, `false` otherwise
+
+### isNumber
+
+```objc
+- (bool)isNumber;
+```
+
+Checks if this input is a number type.
+
+**Returns:** `true` if the input is a `RiveSMINumber`, `false` otherwise
+
+## Usage Example
+
+```objc
+// Get an input from a state machine
+RiveSMIInput* input = [stateMachine inputFromName:@"myInput"];
+
+// Check the input type
+if ([input isBoolean]) {
+    RiveSMIBool* boolInput = (RiveSMIBool*)input;
+    [boolInput setValue:true];
+} else if ([input isNumber]) {
+    RiveSMINumber* numberInput = (RiveSMINumber*)input;
+    [numberInput setValue:42.0];
+} else if ([input isTrigger]) {
+    RiveSMITrigger* triggerInput = (RiveSMITrigger*)input;
+    [triggerInput fire];
+}
+
+NSLog(@"Input name: %@", [input name]);
+```
+
+## See Also
+
+- [RiveSMIBool](/api/rive-smi-bool)
+- [RiveSMINumber](/api/rive-smi-number)
+- [RiveSMITrigger](/api/rive-smi-trigger)
+- [RiveStateMachineInstance](/api/rive-state-machine-instance)

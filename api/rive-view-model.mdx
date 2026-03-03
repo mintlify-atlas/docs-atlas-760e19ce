@@ -1,0 +1,1093 @@
+---
+title: RiveViewModel
+description: The primary controller for managing RiveView instances. Provides high-level control over animations, state machines, and user interactions.
+---
+
+`RiveViewModel` is the main class for controlling a RiveView. For most common Rive files, you should only need to interact with a `RiveViewModel` object.
+
+## Usage Guidelines
+
+- Initialize with either an Animation name or a StateMachine name, but not both
+- Only one will be used; if both are given, the StateMachine takes precedence
+- Default StateMachine or Animation from the file can be used by leaving their parameters `nil`
+
+## Initializers
+
+### Initialize with RiveModel and State Machine
+
+```swift
+public init(
+    _ model: RiveModel,
+    stateMachineName: String?,
+    fit: RiveFit = .contain,
+    alignment: RiveAlignment = .center,
+    autoPlay: Bool = true,
+    artboardName: String? = nil
+)
+```
+
+<ParamField path="model" type="RiveModel" required>
+  The RiveModel instance containing the Rive file data
+</ParamField>
+
+<ParamField path="stateMachineName" type="String?" required>
+  The name of the state machine to use. Pass `nil` to use the default state machine
+</ParamField>
+
+<ParamField path="fit" type="RiveFit" default=".contain">
+  How the Rive content should fit within the view bounds
+</ParamField>
+
+<ParamField path="alignment" type="RiveAlignment" default=".center">
+  How the Rive content should align within the view bounds
+</ParamField>
+
+<ParamField path="autoPlay" type="Bool" default="true">
+  Whether the animation or state machine should start playing automatically
+</ParamField>
+
+<ParamField path="artboardName" type="String?">
+  The name of the artboard to use. Pass `nil` to use the default artboard
+</ParamField>
+
+### Initialize with RiveModel and Animation
+
+```swift
+public init(
+    _ model: RiveModel,
+    animationName: String? = nil,
+    fit: RiveFit = .contain,
+    alignment: RiveAlignment = .center,
+    autoPlay: Bool = true,
+    artboardName: String? = nil
+)
+```
+
+<ParamField path="model" type="RiveModel" required>
+  The RiveModel instance containing the Rive file data
+</ParamField>
+
+<ParamField path="animationName" type="String?">
+  The name of the animation to play. Pass `nil` to use the default animation
+</ParamField>
+
+<ParamField path="fit" type="RiveFit" default=".contain">
+  How the Rive content should fit within the view bounds
+</ParamField>
+
+<ParamField path="alignment" type="RiveAlignment" default=".center">
+  How the Rive content should align within the view bounds
+</ParamField>
+
+<ParamField path="autoPlay" type="Bool" default="true">
+  Whether the animation should start playing automatically
+</ParamField>
+
+<ParamField path="artboardName" type="String?">
+  The name of the artboard to use. Pass `nil` to use the default artboard
+</ParamField>
+
+### Initialize with File Name and State Machine
+
+```swift
+public init(
+    fileName: String,
+    extension: String = ".riv",
+    in bundle: Bundle = .main,
+    stateMachineName: String?,
+    fit: RiveFit = .contain,
+    alignment: RiveAlignment = .center,
+    autoPlay: Bool = true,
+    artboardName: String? = nil,
+    loadCdn: Bool = true,
+    customLoader: LoadAsset? = nil
+)
+```
+
+<ParamField path="fileName" type="String" required>
+  The name of the Rive file (without extension)
+</ParamField>
+
+<ParamField path="extension" type="String" default=".riv">
+  The file extension
+</ParamField>
+
+<ParamField path="bundle" type="Bundle" default=".main">
+  The bundle containing the Rive file
+</ParamField>
+
+<ParamField path="stateMachineName" type="String?" required>
+  The name of the state machine to use. Pass `nil` to use the default state machine
+</ParamField>
+
+<ParamField path="fit" type="RiveFit" default=".contain">
+  How the Rive content should fit within the view bounds
+</ParamField>
+
+<ParamField path="alignment" type="RiveAlignment" default=".center">
+  How the Rive content should align within the view bounds
+</ParamField>
+
+<ParamField path="autoPlay" type="Bool" default="true">
+  Whether the state machine should start playing automatically
+</ParamField>
+
+<ParamField path="artboardName" type="String?">
+  The name of the artboard to use. Pass `nil` to use the default artboard
+</ParamField>
+
+<ParamField path="loadCdn" type="Bool" default="true">
+  Whether to load assets from CDN
+</ParamField>
+
+<ParamField path="customLoader" type="LoadAsset?">
+  Custom asset loader for loading external assets
+</ParamField>
+
+### Initialize with File Name and Animation
+
+```swift
+public init(
+    fileName: String,
+    extension: String = ".riv",
+    in bundle: Bundle = .main,
+    animationName: String? = nil,
+    fit: RiveFit = .contain,
+    alignment: RiveAlignment = .center,
+    autoPlay: Bool = true,
+    artboardName: String? = nil,
+    preferredFramesPerSecond: Int? = nil,
+    loadCdn: Bool = true,
+    customLoader: LoadAsset? = nil
+)
+```
+
+<ParamField path="fileName" type="String" required>
+  The name of the Rive file (without extension)
+</ParamField>
+
+<ParamField path="extension" type="String" default=".riv">
+  The file extension
+</ParamField>
+
+<ParamField path="bundle" type="Bundle" default=".main">
+  The bundle containing the Rive file
+</ParamField>
+
+<ParamField path="animationName" type="String?">
+  The name of the animation to play. Pass `nil` to use the default animation
+</ParamField>
+
+<ParamField path="fit" type="RiveFit" default=".contain">
+  How the Rive content should fit within the view bounds
+</ParamField>
+
+<ParamField path="alignment" type="RiveAlignment" default=".center">
+  How the Rive content should align within the view bounds
+</ParamField>
+
+<ParamField path="autoPlay" type="Bool" default="true">
+  Whether the animation should start playing automatically
+</ParamField>
+
+<ParamField path="artboardName" type="String?">
+  The name of the artboard to use. Pass `nil` to use the default artboard
+</ParamField>
+
+<ParamField path="preferredFramesPerSecond" type="Int?">
+  Preferred frames per second for the animation
+</ParamField>
+
+<ParamField path="loadCdn" type="Bool" default="true">
+  Whether to load assets from CDN
+</ParamField>
+
+<ParamField path="customLoader" type="LoadAsset?">
+  Custom asset loader for loading external assets
+</ParamField>
+
+### Initialize with Web URL and State Machine
+
+```swift
+public init(
+    webURL: String,
+    stateMachineName: String?,
+    fit: RiveFit = .contain,
+    alignment: RiveAlignment = .center,
+    autoPlay: Bool = true,
+    loadCdn: Bool = true,
+    artboardName: String? = nil
+)
+```
+
+<ParamField path="webURL" type="String" required>
+  The URL of the Rive file to load from the web
+</ParamField>
+
+<ParamField path="stateMachineName" type="String?" required>
+  The name of the state machine to use. Pass `nil` to use the default state machine
+</ParamField>
+
+<ParamField path="fit" type="RiveFit" default=".contain">
+  How the Rive content should fit within the view bounds
+</ParamField>
+
+<ParamField path="alignment" type="RiveAlignment" default=".center">
+  How the Rive content should align within the view bounds
+</ParamField>
+
+<ParamField path="autoPlay" type="Bool" default="true">
+  Whether the state machine should start playing automatically
+</ParamField>
+
+<ParamField path="loadCdn" type="Bool" default="true">
+  Whether to load assets from CDN
+</ParamField>
+
+<ParamField path="artboardName" type="String?">
+  The name of the artboard to use. Pass `nil` to use the default artboard
+</ParamField>
+
+### Initialize with Web URL and Animation
+
+```swift
+public init(
+    webURL: String,
+    animationName: String? = nil,
+    fit: RiveFit = .contain,
+    alignment: RiveAlignment = .center,
+    autoPlay: Bool = true,
+    loadCdn: Bool = true,
+    artboardName: String? = nil
+)
+```
+
+<ParamField path="webURL" type="String" required>
+  The URL of the Rive file to load from the web
+</ParamField>
+
+<ParamField path="animationName" type="String?">
+  The name of the animation to play. Pass `nil` to use the default animation
+</ParamField>
+
+<ParamField path="fit" type="RiveFit" default=".contain">
+  How the Rive content should fit within the view bounds
+</ParamField>
+
+<ParamField path="alignment" type="RiveAlignment" default=".center">
+  How the Rive content should align within the view bounds
+</ParamField>
+
+<ParamField path="autoPlay" type="Bool" default="true">
+  Whether the animation should start playing automatically
+</ParamField>
+
+<ParamField path="loadCdn" type="Bool" default="true">
+  Whether to load assets from CDN
+</ParamField>
+
+<ParamField path="artboardName" type="String?">
+  The name of the artboard to use. Pass `nil` to use the default artboard
+</ParamField>
+
+## Properties
+
+### riveModel
+
+```swift
+open private(set) var riveModel: RiveModel?
+```
+
+The underlying RiveModel instance. Read-only.
+
+### isPlaying
+
+```swift
+open var isPlaying: Bool { get }
+```
+
+Returns `true` if the animation or state machine is currently playing.
+
+### autoPlay
+
+```swift
+open var autoPlay: Bool
+```
+
+Whether the animation or state machine should start playing automatically when loaded.
+
+### fit
+
+```swift
+open var fit: RiveFit
+```
+
+How the Rive content should fit within the view bounds. Defaults to `.contain`.
+
+### alignment
+
+```swift
+open var alignment: RiveAlignment
+```
+
+How the Rive content should align within the view bounds. Defaults to `.center`.
+
+### layoutScaleFactor
+
+```swift
+open var layoutScaleFactor: Double
+```
+
+The scale factor to apply when using the `layout` fit. By default, this value is `-1`, where Rive will determine the correct scale for your device. To override this default behavior, set this value to a value greater than 0.
+
+<Note>If the scale factor is less than or equal to 0, nothing will be drawn.</Note>
+
+### forwardsListenerEvents
+
+```swift
+open var forwardsListenerEvents: Bool
+```
+
+Sets whether the current Rive view should forward Rive listener touch/click events to any next responders. When `true`, touch/click events will be forwarded to any next responder(s). When `false`, only the Rive view will handle touch/click events. Defaults to `false`.
+
+<Note>On iOS, this is handled separately from `isExclusiveTouch`.</Note>
+
+### layoutScaleFactorAutomatic
+
+```swift
+public static let layoutScaleFactorAutomatic: Double
+```
+
+The default layout scale factor that allows for the scale factor to be determined by Rive.
+
+## Methods
+
+### play
+
+```swift
+open func play(
+    animationName: String? = nil,
+    loop: RiveLoop = .autoLoop,
+    direction: RiveDirection = .autoDirection
+)
+```
+
+Starts the active Animation or StateMachine from its last position. It will start from the beginning if the active Animation has ended or a new one is provided.
+
+<ParamField path="animationName" type="String?">
+  The name of a new Animation to play on the current Artboard
+</ParamField>
+
+<ParamField path="loop" type="RiveLoop" default=".autoLoop">
+  The loop mode for the active Animation
+</ParamField>
+
+<ParamField path="direction" type="RiveDirection" default=".autoDirection">
+  The playback direction for the active Animation
+</ParamField>
+
+**Example:**
+
+```swift
+let viewModel = RiveViewModel(fileName: "hero")
+viewModel.play(animationName: "idle", loop: .loop)
+```
+
+### pause
+
+```swift
+open func pause()
+```
+
+Halts the active Animation or StateMachine and will resume from its current position when next played.
+
+**Example:**
+
+```swift
+viewModel.pause()
+```
+
+### stop
+
+```swift
+open func stop()
+```
+
+Halts the active Animation or StateMachine and sets it at its starting position.
+
+**Example:**
+
+```swift
+viewModel.stop()
+```
+
+### reset
+
+```swift
+open func reset()
+```
+
+Sets the active Animation or StateMachine back to their starting position.
+
+**Example:**
+
+```swift
+viewModel.reset()
+```
+
+### configureModel
+
+```swift
+open func configureModel(
+    artboardName: String? = nil,
+    stateMachineName: String? = nil,
+    animationName: String? = nil
+) throws
+```
+
+Instantiates elements in the model needed to play in a `RiveView`.
+
+<ParamField path="artboardName" type="String?">
+  The name of the artboard to configure. Pass `nil` to use the current or default artboard
+</ParamField>
+
+<ParamField path="stateMachineName" type="String?">
+  The name of the state machine to configure. Pass `nil` to use default
+</ParamField>
+
+<ParamField path="animationName" type="String?">
+  The name of the animation to configure. Pass `nil` to use default
+</ParamField>
+
+**Example:**
+
+```swift
+try viewModel.configureModel(artboardName: "Character", stateMachineName: "State Machine 1")
+```
+
+### resetToDefaultModel
+
+```swift
+open func resetToDefaultModel()
+```
+
+Sets the Artboard, StateMachine or Animation back to the first one given to the RiveViewModel.
+
+**Example:**
+
+```swift
+viewModel.resetToDefaultModel()
+```
+
+### triggerInput
+
+```swift
+open func triggerInput(_ inputName: String)
+```
+
+Provide the active StateMachine a `Trigger` input.
+
+<ParamField path="inputName" type="String" required>
+  The name of a `Trigger` input on the active StateMachine
+</ParamField>
+
+**Example:**
+
+```swift
+viewModel.triggerInput("Button")
+```
+
+### triggerInput (with path)
+
+```swift
+open func triggerInput(_ inputName: String, path: String)
+```
+
+Provide the specified nested Artboard with a `Trigger` input.
+
+<ParamField path="inputName" type="String" required>
+  The name of a `Trigger` input on the active StateMachine
+</ParamField>
+
+<ParamField path="path" type="String" required>
+  A String representing the path to the nested artboard delimited by "/" (e.g., "Nested" or "Level1/Level2/Level3")
+</ParamField>
+
+**Example:**
+
+```swift
+viewModel.triggerInput("Button", path: "Character/Head")
+```
+
+### setInput (Boolean)
+
+```swift
+open func setInput(_ inputName: String, value: Bool)
+```
+
+Provide the active StateMachine a `Boolean` input.
+
+<ParamField path="inputName" type="String" required>
+  The name of a `Boolean` input on the active StateMachine
+</ParamField>
+
+<ParamField path="value" type="Bool" required>
+  A Bool value for the input
+</ParamField>
+
+**Example:**
+
+```swift
+viewModel.setInput("isActive", value: true)
+```
+
+### setInput (Boolean with path)
+
+```swift
+open func setInput(_ inputName: String, value: Bool, path: String)
+```
+
+Provide the specified nested Artboard with a `Boolean` input.
+
+<ParamField path="inputName" type="String" required>
+  The name of a `Boolean` input on the active StateMachine
+</ParamField>
+
+<ParamField path="value" type="Bool" required>
+  A Bool value for the input
+</ParamField>
+
+<ParamField path="path" type="String" required>
+  A String representing the path to the nested artboard delimited by "/"
+</ParamField>
+
+**Example:**
+
+```swift
+viewModel.setInput("isActive", value: true, path: "Character")
+```
+
+### setInput (Float)
+
+```swift
+open func setInput(_ inputName: String, value: Float)
+```
+
+Provide the active StateMachine a `Number` input.
+
+<ParamField path="inputName" type="String" required>
+  The name of a `Number` input on the active StateMachine
+</ParamField>
+
+<ParamField path="value" type="Float" required>
+  A Float value for the input
+</ParamField>
+
+**Example:**
+
+```swift
+viewModel.setInput("progress", value: 0.75)
+```
+
+### setInput (Float with path)
+
+```swift
+open func setInput(_ inputName: String, value: Float, path: String)
+```
+
+Provide the specified nested Artboard with a `Number` input.
+
+<ParamField path="inputName" type="String" required>
+  The name of a `Number` input on the active StateMachine
+</ParamField>
+
+<ParamField path="value" type="Float" required>
+  A Float value for the input
+</ParamField>
+
+<ParamField path="path" type="String" required>
+  A String representing the path to the nested artboard delimited by "/"
+</ParamField>
+
+**Example:**
+
+```swift
+viewModel.setInput("progress", value: 0.75, path: "Character")
+```
+
+### setInput (Double)
+
+```swift
+open func setInput(_ inputName: String, value: Double)
+```
+
+Provide the active StateMachine a `Number` input.
+
+<ParamField path="inputName" type="String" required>
+  The name of a `Number` input on the active StateMachine
+</ParamField>
+
+<ParamField path="value" type="Double" required>
+  A Double value for the input
+</ParamField>
+
+**Example:**
+
+```swift
+viewModel.setInput("progress", value: 0.75)
+```
+
+### setInput (Double with path)
+
+```swift
+open func setInput(_ inputName: String, value: Double, path: String)
+```
+
+Provide the specified nested Artboard with a `Number` input.
+
+<ParamField path="inputName" type="String" required>
+  The name of a `Number` input on the active StateMachine
+</ParamField>
+
+<ParamField path="value" type="Double" required>
+  A Double value for the input
+</ParamField>
+
+<ParamField path="path" type="String" required>
+  A String representing the path to the nested artboard delimited by "/"
+</ParamField>
+
+**Example:**
+
+```swift
+viewModel.setInput("progress", value: 0.75, path: "Character")
+```
+
+### boolInput
+
+```swift
+open func boolInput(named name: String) -> RiveSMIBool?
+```
+
+Returns the current boolean input by name. Get its value by calling `.value` on the returned object.
+
+<ParamField path="name" type="String" required>
+  The name of the input
+</ParamField>
+
+**Returns:** The boolean input if it exists. Returns `nil` if the input cannot be found.
+
+**Example:**
+
+```swift
+if let input = viewModel.boolInput(named: "isActive") {
+    print("Current value: \(input.value)")
+}
+```
+
+### numberInput
+
+```swift
+open func numberInput(named name: String) -> RiveSMINumber?
+```
+
+Returns the current number input by name. Get its value by calling `.value` on the returned object.
+
+<ParamField path="name" type="String" required>
+  The name of the input
+</ParamField>
+
+**Returns:** The number input if it exists. Returns `nil` if the input cannot be found.
+
+**Example:**
+
+```swift
+if let input = viewModel.numberInput(named: "progress") {
+    print("Current value: \(input.value)")
+}
+```
+
+### getTextRunValue
+
+```swift
+open func getTextRunValue(_ textRunName: String) -> String?
+```
+
+Get a text value from a specified text run.
+
+<ParamField path="textRunName" type="String" required>
+  The name of a `Text Run` on the active Artboard
+</ParamField>
+
+**Returns:** String text value of the specified text run if applicable.
+
+**Example:**
+
+```swift
+if let text = viewModel.getTextRunValue("TitleText") {
+    print("Text: \(text)")
+}
+```
+
+### getTextRunValue (with path)
+
+```swift
+open func getTextRunValue(_ textRunName: String, path: String) -> String?
+```
+
+Get a text value from a specified text run in a nested artboard.
+
+<ParamField path="textRunName" type="String" required>
+  The name of a `Text Run` on the active Artboard
+</ParamField>
+
+<ParamField path="path" type="String" required>
+  The path to the nested text run
+</ParamField>
+
+**Returns:** String text value of the specified text run if applicable.
+
+**Example:**
+
+```swift
+if let text = viewModel.getTextRunValue("TitleText", path: "Character/Head") {
+    print("Text: \(text)")
+}
+```
+
+### setTextRunValue
+
+```swift
+open func setTextRunValue(_ textRunName: String, textValue: String) throws
+```
+
+Set a text value for a specified text run.
+
+<ParamField path="textRunName" type="String" required>
+  The name of a `Text Run` on the active Artboard
+</ParamField>
+
+<ParamField path="textValue" type="String" required>
+  A String value for the text run
+</ParamField>
+
+**Example:**
+
+```swift
+try viewModel.setTextRunValue("TitleText", textValue: "Hello, World!")
+```
+
+### setTextRunValue (with path)
+
+```swift
+open func setTextRunValue(
+    _ textRunName: String,
+    path: String,
+    textValue: String
+) throws
+```
+
+Set a text value for a specified text run in a nested artboard.
+
+<ParamField path="textRunName" type="String" required>
+  The name of a `Text Run` on the active Artboard
+</ParamField>
+
+<ParamField path="path" type="String" required>
+  The path to the nested text run
+</ParamField>
+
+<ParamField path="textValue" type="String" required>
+  A String value for the text run
+</ParamField>
+
+<Note>If the specified path is empty, the parent artboard will be used to find the text run.</Note>
+
+**Example:**
+
+```swift
+try viewModel.setTextRunValue("TitleText", path: "Character", textValue: "Hello!")
+```
+
+### artboardNames
+
+```swift
+open func artboardNames() -> [String]
+```
+
+Returns an array of all artboard names in the Rive file.
+
+**Example:**
+
+```swift
+let names = viewModel.artboardNames()
+print("Available artboards: \(names)")
+```
+
+### setPreferredFramesPerSecond
+
+```swift
+open func setPreferredFramesPerSecond(preferredFramesPerSecond: Int)
+```
+
+Hints to underlying CADisplayLink in RiveView the preferred FPS to run at.
+
+<ParamField path="preferredFramesPerSecond" type="Int" required>
+  Integer number of seconds to set preferred FPS at
+</ParamField>
+
+**Example:**
+
+```swift
+viewModel.setPreferredFramesPerSecond(preferredFramesPerSecond: 60)
+```
+
+### setPreferredFrameRateRange
+
+```swift
+@available(iOS 15.0, tvOS 15.0, visionOS 1.0, macOS 14, *)
+open func setPreferredFrameRateRange(preferredFrameRateRange: CAFrameRateRange)
+```
+
+Hints to underlying CADisplayLink in RiveView the preferred frame rate range.
+
+<ParamField path="preferredFrameRateRange" type="CAFrameRateRange" required>
+  Frame rate range to set
+</ParamField>
+
+**Example:**
+
+```swift
+if #available(iOS 15.0, *) {
+    let range = CAFrameRateRange(minimum: 60, maximum: 120, preferred: 120)
+    viewModel.setPreferredFrameRateRange(preferredFrameRateRange: range)
+}
+```
+
+### createRiveView
+
+```swift
+open func createRiveView() -> RiveView
+```
+
+Makes a new `RiveView` for the instance property with data from model which will replace any previous `RiveView`. This is called when first drawing a `RiveViewRepresentable`.
+
+**Returns:** Reference to the new view that the `RiveViewModel` will be maintaining.
+
+**Example:**
+
+```swift
+let riveView = viewModel.createRiveView()
+```
+
+### setRiveView
+
+```swift
+open func setRiveView(view: RiveView)
+```
+
+Registers a RiveView with this view model.
+
+<ParamField path="view" type="RiveView" required>
+  The RiveView to register
+</ParamField>
+
+**Example:**
+
+```swift
+viewModel.setRiveView(view: riveView)
+```
+
+### update
+
+```swift
+open func update(view: RiveView)
+```
+
+Gives updated layout values to the provided `RiveView`. This is called in the process of re-displaying `RiveViewRepresentable`.
+
+<ParamField path="view" type="RiveView" required>
+  The `RiveView` that will be updated
+</ParamField>
+
+**Example:**
+
+```swift
+viewModel.update(view: riveView)
+```
+
+### deregisterView
+
+```swift
+open func deregisterView()
+```
+
+Stops maintaining a connection to any `RiveView`.
+
+**Example:**
+
+```swift
+viewModel.deregisterView()
+```
+
+### view
+
+```swift
+open func view() -> AnyView
+```
+
+Creates a SwiftUI view that can be added to the body of a SwiftUI `View`.
+
+**Returns:** A SwiftUI AnyView wrapping the RiveView.
+
+**Example:**
+
+```swift
+struct ContentView: View {
+    let viewModel = RiveViewModel(fileName: "hero")
+    
+    var body: some View {
+        viewModel.view()
+    }
+}
+```
+
+### setView
+
+```swift
+open func setView(_ view: RiveView)
+```
+
+This can be used to connect with and configure an `RiveView` that was created elsewhere. Does not need to be called when updating an already configured `RiveView`. Useful for attaching views created in a `UIViewController` or Storyboard.
+
+<ParamField path="view" type="RiveView" required>
+  The `RiveView` that this `RiveViewModel` will maintain
+</ParamField>
+
+**Example (UIKit):**
+
+```swift
+class AnimationViewController: UIViewController {
+    @IBOutlet weak var riveView: RiveView!
+    var viewModel = RiveViewModel(fileName: "hero")
+    
+    override func viewDidLoad() {
+        viewModel.setView(riveView)
+    }
+}
+```
+
+## Delegate Methods
+
+The following delegate methods can be implemented by conforming to `RiveFileDelegate`, `RiveStateMachineDelegate`, and `RivePlayerDelegate`:
+
+### riveFileDidLoad
+
+```swift
+open func riveFileDidLoad(_ riveFile: RiveFile) throws
+```
+
+Called by RiveFile when it finishes downloading an asset asynchronously.
+
+### riveFileDidError
+
+```swift
+open func riveFileDidError(_ error: any Error)
+```
+
+Called when there is an error loading the Rive file.
+
+### player (played)
+
+```swift
+open func player(playedWithModel riveModel: RiveModel?)
+```
+
+Called when playback starts.
+
+### player (paused)
+
+```swift
+open func player(pausedWithModel riveModel: RiveModel?)
+```
+
+Called when playback pauses.
+
+### player (looped)
+
+```swift
+open func player(loopedWithModel riveModel: RiveModel?, type: Int)
+```
+
+Called when an animation loops.
+
+### player (stopped)
+
+```swift
+open func player(stoppedWithModel riveModel: RiveModel?)
+```
+
+Called when playback stops.
+
+### player (didAdvanceby)
+
+```swift
+open func player(didAdvanceby seconds: Double, riveModel: RiveModel?)
+```
+
+Called on each frame advance with the elapsed time.
+
+## Usage Examples
+
+### SwiftUI Example
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct AnimationView: View {
+    var body: some View {
+        RiveViewModel(fileName: "hero").view()
+    }
+}
+```
+
+### UIKit Example
+
+```swift
+import UIKit
+import RiveRuntime
+
+class AnimationViewController: UIViewController {
+    @IBOutlet weak var riveView: RiveView!
+    var viewModel = RiveViewModel(fileName: "hero")
+    
+    override func viewDidLoad() {
+        viewModel.setView(riveView)
+    }
+}
+```
+
+### Interactive State Machine Example
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct InteractiveView: View {
+    let viewModel = RiveViewModel(
+        fileName: "button",
+        stateMachineName: "State Machine 1"
+    )
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+            
+            Button("Trigger") {
+                viewModel.triggerInput("Press")
+            }
+        }
+    }
+}
+```

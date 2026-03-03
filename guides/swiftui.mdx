@@ -1,0 +1,317 @@
+---
+title: Using Rive with SwiftUI
+description: Learn how to integrate Rive animations into SwiftUI applications
+---
+
+Rive provides a native SwiftUI integration through `RiveViewModel` and its view builder methods. This guide covers everything from basic setup to advanced techniques.
+
+## Quick Start
+
+The simplest way to display a Rive animation in SwiftUI is to create a `RiveViewModel` and call its `view()` method:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct ContentView: View {
+    var body: some View {
+        RiveViewModel(fileName: "magic_8-ball_v2").view()
+    }
+}
+```
+
+## Using @StateObject
+
+For more control over your animation, store the view model as a `@StateObject`:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct AnimationView: View {
+    @StateObject private var riveViewModel = RiveViewModel(
+        fileName: "halloween", 
+        autoPlay: false
+    )
+    
+    var body: some View {
+        riveViewModel.view()
+    }
+}
+```
+
+This approach allows you to:
+- Control playback (play, pause, stop)
+- Trigger state machine inputs
+- Respond to animation events
+- Update text runs dynamically
+
+## Controlling Animations
+
+### Basic Playback Controls
+
+```swift
+struct PlaybackControlsView: View {
+    @StateObject private var viewModel = RiveViewModel(fileName: "truck")
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+                .aspectRatio(contentMode: .fit)
+            
+            HStack {
+                Button("Play") {
+                    viewModel.play()
+                }
+                Button("Pause") {
+                    viewModel.pause()
+                }
+                Button("Stop") {
+                    viewModel.stop()
+                }
+            }
+        }
+    }
+}
+```
+
+### Working with State Machines
+
+```swift
+struct StateMachineView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "skills", 
+        stateMachineName: "Designer's Test"
+    )
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+                .frame(height: 200)
+            
+            HStack {
+                Button("Beginner") {
+                    viewModel.setInput("Level", value: 0.0)
+                }
+                Button("Intermediate") {
+                    viewModel.setInput("Level", value: 1.0)
+                }
+                Button("Expert") {
+                    viewModel.setInput("Level", value: 2.0)
+                }
+            }
+        }
+    }
+}
+```
+
+## Layout and Sizing
+
+### Fit and Alignment
+
+```swift
+struct LayoutView: View {
+    @State private var fit: RiveFit = .contain
+    @State private var alignment: RiveAlignment = .center
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "layout_test", 
+        fit: .contain
+    )
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+                .onChange(of: fit) { value in
+                    viewModel.fit = value
+                }
+                .onChange(of: alignment) { value in
+                    viewModel.alignment = value
+                }
+            
+            // Fit options
+            HStack {
+                Button("Fill") { fit = .fill }
+                Button("Contain") { fit = .contain }
+                Button("Cover") { fit = .cover }
+            }
+            
+            // Alignment options
+            HStack {
+                Button("Top Left") { alignment = .topLeft }
+                Button("Center") { alignment = .center }
+                Button("Bottom Right") { alignment = .bottomRight }
+            }
+        }
+    }
+}
+```
+
+### Available Fit Options
+
+- **`.contain`** - Scales the animation to fit within the view while maintaining aspect ratio
+- **`.fill`** - Fills the entire view, potentially cropping the animation
+- **`.cover`** - Scales to cover the view while maintaining aspect ratio
+- **`.fitWidth`** - Scales to match the view's width
+- **`.fitHeight`** - Scales to match the view's height
+- **`.scaleDown`** - Only scales down if the animation is larger than the view
+- **`.layout`** - Resizes the artboard to match the view size
+- **`.noFit`** - No scaling applied
+
+### Available Alignment Options
+
+- **`.topLeft`**, **`.topCenter`**, **`.topRight`**
+- **`.centerLeft`**, **`.center`**, **`.centerRight`**
+- **`.bottomLeft`**, **`.bottomCenter`**, **`.bottomRight`**
+
+## Advanced Features
+
+### Custom Layout Scale Factor
+
+When using `.layout` fit mode, you can specify a custom scale factor:
+
+```swift
+struct CustomScaleView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "layout_test",
+        fit: .layout
+    )
+    @State private var scaleFactor: Double = RiveViewModel.layoutScaleFactorAutomatic
+    
+    var body: some View {
+        VStack {
+            viewModel.view()
+                .onChange(of: scaleFactor) { value in
+                    viewModel.layoutScaleFactor = value
+                }
+            
+            Stepper {
+                Text("Scale factor: \(scaleFactor == RiveViewModel.layoutScaleFactorAutomatic ? "Automatic" : "\(Int(scaleFactor))")
+            } onIncrement: {
+                if scaleFactor == RiveViewModel.layoutScaleFactorAutomatic {
+                    scaleFactor = 1
+                } else {
+                    scaleFactor += 1
+                }
+            } onDecrement: {
+                guard scaleFactor > RiveViewModel.layoutScaleFactorAutomatic else { return }
+                scaleFactor -= 1
+                if scaleFactor == 0 {
+                    scaleFactor = RiveViewModel.layoutScaleFactorAutomatic
+                }
+            }
+        }
+    }
+}
+```
+
+### Volume Control
+
+Control audio volume for animations with sound:
+
+```swift
+struct AudioView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "lip-sync_test",
+        stateMachineName: "State Machine 1",
+        artboardName: "Lip_sync_2"
+    )
+    
+    var body: some View {
+        viewModel.view()
+            .onAppear {
+                viewModel.riveModel?.volume = 0.5
+            }
+    }
+}
+```
+
+## State Machine Inputs
+
+### Trigger Inputs
+
+```swift
+viewModel.triggerInput("myTrigger")
+```
+
+### Boolean Inputs
+
+```swift
+viewModel.setInput("isActive", value: true)
+```
+
+### Number Inputs
+
+```swift
+viewModel.setInput("speed", value: 2.5)
+viewModel.setInput("progress", value: 0.75)
+```
+
+### Reading Input Values
+
+```swift
+if let boolInput = viewModel.boolInput(named: "isActive") {
+    let currentValue = boolInput.value
+}
+
+if let numberInput = viewModel.numberInput(named: "speed") {
+    let currentValue = numberInput.value
+}
+```
+
+## Nested Artboards
+
+For nested artboards, specify the path to the input:
+
+```swift
+// Trigger input in nested artboard
+viewModel.triggerInput("myTrigger", path: "NestedArtboard")
+
+// Set boolean in deeply nested artboard
+viewModel.setInput("isActive", value: true, path: "Level1/Level2/Level3")
+
+// Set number in nested artboard
+viewModel.setInput("speed", value: 2.0, path: "NestedArtboard")
+```
+
+## Performance Optimization
+
+### Frame Rate Control
+
+```swift
+struct FrameRateView: View {
+    @StateObject private var viewModel = RiveViewModel(fileName: "animation")
+    
+    var body: some View {
+        viewModel.view()
+            .onAppear {
+                // Set preferred FPS
+                viewModel.setPreferredFramesPerSecond(preferredFramesPerSecond: 30)
+                
+                // Or use frame rate range (iOS 15+)
+                if #available(iOS 15.0, *) {
+                    viewModel.setPreferredFrameRateRange(
+                        preferredFrameRateRange: CAFrameRateRange(
+                            minimum: 30,
+                            maximum: 60,
+                            preferred: 60
+                        )
+                    )
+                }
+            }
+    }
+}
+```
+
+## Best Practices
+
+1. **Use @StateObject** - Always use `@StateObject` for view models to ensure proper lifecycle management
+2. **Reuse View Models** - Create view models once and reuse them rather than recreating on every render
+3. **Control AutoPlay** - Set `autoPlay: false` when you need manual control over playback
+4. **Specify State Machines** - Explicitly name the state machine or animation you want to use
+5. **Handle Loading States** - Consider showing a placeholder while animations load from URLs
+
+## Next Steps
+
+- [Loading Assets](/guides/loading-assets) - Learn how to load .riv files from different sources
+- [Touch Events](/guides/touch-events) - Handle user interactions with your animations
+- [RiveViewModel API](/api/rive-view-model) - Complete API documentation

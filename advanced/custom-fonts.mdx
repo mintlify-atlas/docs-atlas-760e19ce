@@ -1,0 +1,355 @@
+---
+title: Custom Fonts
+description: Learn how to use custom fonts and configure fallback fonts for missing characters
+---
+
+The Rive iOS Runtime supports custom fonts and provides a powerful fallback font system to handle missing characters gracefully. This ensures your text renders correctly even when the embedded Rive font doesn't contain all necessary glyphs.
+
+## Overview
+
+Rive files can embed fonts, but these fonts might not contain all characters your application needs. The fallback font system allows you to specify system fonts or custom fonts to use when characters are missing from the embedded font.
+
+## Fallback Font Providers
+
+The iOS Runtime provides two ways to specify fallback fonts:
+
+### RiveFallbackFontDescriptor
+
+Descriptors generate system fonts with specific attributes:
+
+```swift
+import RiveRuntime
+
+public class RiveFallbackFontDescriptor {
+    init(
+        design: UIFontDescriptor.SystemDesign = .default,
+        weight: UIFont.Weight = .regular,
+        width: UIFont.Width = .standard
+    )
+}
+```
+
+### UIFont Directly
+
+You can also use any `UIFont` instance as a fallback font provider.
+
+## Setting Global Fallback Fonts
+
+Set fallback fonts that will be used for all Rive text:
+
+```swift
+import RiveRuntime
+
+// Set global fallback fonts
+RiveFont.fallbackFonts = [
+    // System font descriptor
+    RiveFallbackFontDescriptor(
+        design: .default,
+        weight: .regular,
+        width: .standard
+    ),
+    // Explicit system font
+    UIFont.systemFont(ofSize: 12, weight: .heavy),
+    // Custom font by name
+    UIFont(name: "Times New Roman", size: 12)!
+]
+```
+
+Fallback fonts are tried in order until a font with the required glyph is found.
+
+## Style-Specific Fallback Fonts
+
+For more control, set a callback that returns different fonts based on text style:
+
+```swift
+import RiveRuntime
+
+RiveFont.fallbackFontsCallback = { (style: RiveFontStyle) -> [RiveFallbackFontProvider] in
+    switch style.weight {
+    case .ultraLight:
+        return [
+            RiveFallbackFontDescriptor(weight: .ultraLight),
+            UIFont.systemFont(ofSize: 20, weight: .ultraLight)
+        ]
+    case .regular:
+        return [
+            RiveFallbackFontDescriptor(),
+            UIFont.systemFont(ofSize: 20, weight: .regular)
+        ]
+    case .bold:
+        return [
+            RiveFallbackFontDescriptor(weight: .bold),
+            UIFont.systemFont(ofSize: 20, weight: .bold)
+        ]
+    case .black:
+        return [
+            RiveFallbackFontDescriptor(weight: .black),
+            UIFont.systemFont(ofSize: 20, weight: .black)
+        ]
+    default:
+        return [RiveFallbackFontDescriptor()]
+    }
+}
+```
+
+**Note**: If `fallbackFontsCallback` is set, `fallbackFonts` is ignored.
+
+## Complete SwiftUI Example
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct FallbackFontsView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "fallback_fonts",
+        fit: .fill
+    )
+    
+    private var runBinding: Binding<String> {
+        Binding {
+            return self.viewModel.getTextRunValue("ultralight") ?? ""
+        } set: { text in
+            try? self.viewModel.setTextRunValue("ultralight", textValue: text)
+            try? self.viewModel.setTextRunValue("regular", textValue: text)
+            try? self.viewModel.setTextRunValue("bold", textValue: text)
+            try? self.viewModel.setTextRunValue("black", textValue: text)
+            self.viewModel.play()
+        }
+    }
+    
+    var body: some View {
+        VStack {
+            viewModel.view().scaledToFit()
+            
+            Text(
+                "The included Rive font only contains characters in the set A...G. " +
+                "Fallback font(s) will be used to draw missing characters with the correct weight."
+            )
+            .fixedSize(horizontal: false, vertical: true)
+            .font(.caption)
+            .padding()
+            
+            TextField("Add text with missing characters", text: runBinding)
+                .textFieldStyle(.roundedBorder)
+                .padding()
+            
+            Spacer()
+        }
+        .onAppear {
+            setupFallbackFonts()
+        }
+    }
+    
+    private func setupFallbackFonts() {
+        // Option 1: Set fallback fonts for all styles
+        RiveFont.fallbackFonts = [
+            RiveFallbackFontDescriptor(
+                design: .default,
+                weight: .regular,
+                width: .standard
+            ),
+            UIFont.systemFont(ofSize: 12, weight: .heavy),
+            UIFont(name: "Times New Roman", size: 12)!
+        ]
+        
+        // Option 2: Or use a callback for style-specific fonts
+        RiveFont.fallbackFontsCallback = { (style: RiveFontStyle) -> [RiveFallbackFontProvider] in
+            switch style.weight {
+            case .ultraLight:
+                return [
+                    RiveFallbackFontDescriptor(weight: .ultraLight),
+                    UIFont.systemFont(ofSize: 20, weight: .ultraLight)
+                ]
+            case .regular:
+                return [
+                    RiveFallbackFontDescriptor(),
+                    UIFont.systemFont(ofSize: 20, weight: .regular)
+                ]
+            case .bold:
+                return [
+                    RiveFallbackFontDescriptor(weight: .bold),
+                    UIFont.systemFont(ofSize: 20, weight: .bold)
+                ]
+            case .black:
+                return [
+                    RiveFallbackFontDescriptor(weight: .black),
+                    UIFont.systemFont(ofSize: 20, weight: .black)
+                ]
+            default:
+                return [RiveFallbackFontDescriptor()]
+            }
+        }
+    }
+}
+```
+
+## UIKit Example
+
+```swift
+import UIKit
+import RiveRuntime
+
+class FontViewController: UIViewController {
+    @IBOutlet weak var riveView: RiveView!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // Configure fallback fonts
+        RiveFont.fallbackFonts = [
+            RiveFallbackFontDescriptor(weight: .regular),
+            UIFont.systemFont(ofSize: 14, weight: .regular)
+        ]
+        
+        let viewModel = RiveViewModel(fileName: "text_with_fonts")
+        viewModel.setView(riveView)
+    }
+}
+```
+
+## Font Weight Matching
+
+The `RiveFontStyle` provides weight information to match fonts:
+
+```swift
+RiveFont.fallbackFontsCallback = { (style: RiveFontStyle) -> [RiveFallbackFontProvider] in
+    let weight: UIFont.Weight
+    
+    switch style.weight {
+    case .ultraLight: weight = .ultraLight
+    case .light: weight = .light
+    case .regular: weight = .regular
+    case .medium: weight = .medium
+    case .bold: weight = .bold
+    case .black: weight = .black
+    default: weight = .regular
+    }
+    
+    return [
+        RiveFallbackFontDescriptor(weight: weight),
+        UIFont.systemFont(ofSize: 16, weight: weight)
+    ]
+}
+```
+
+## System Font Design
+
+Use different system font designs:
+
+```swift
+// Default system font
+RiveFallbackFontDescriptor(design: .default)
+
+// Monospaced design
+RiveFallbackFontDescriptor(design: .monospaced)
+
+// Rounded design
+RiveFallbackFontDescriptor(design: .rounded)
+
+// Serif design
+if #available(iOS 13.0, *) {
+    RiveFallbackFontDescriptor(design: .serif)
+}
+```
+
+## Font Width Options
+
+```swift
+// Standard width (default)
+RiveFallbackFontDescriptor(width: .standard)
+
+// Condensed
+RiveFallbackFontDescriptor(width: .condensed)
+
+// Compressed
+RiveFallbackFontDescriptor(width: .compressed)
+
+// Expanded
+RiveFallbackFontDescriptor(width: .expanded)
+```
+
+## Using Custom Font Files
+
+To use custom font files in your app:
+
+1. Add the font file to your Xcode project
+2. Include it in your app's Info.plist under "Fonts provided by application"
+3. Reference it by name:
+
+```swift
+if let customFont = UIFont(name: "YourCustomFont-Regular", size: 16) {
+    RiveFont.fallbackFonts = [customFont]
+}
+```
+
+## RiveFallbackFontProvider Protocol
+
+Both `RiveFallbackFontDescriptor` and `UIFont` conform to `RiveFallbackFontProvider`:
+
+```swift
+public protocol RiveFallbackFontProvider {
+    var fallbackFont: RiveNativeFont { get }
+    var allowsSuggestedFonts: Bool { get }
+}
+```
+
+You can implement this protocol for custom fallback font logic.
+
+## Best Practices
+
+1. **Set Fallbacks Early**: Configure fallback fonts in your app delegate or before loading Rive files
+2. **Test Missing Characters**: Test with text that contains characters not in your embedded font
+3. **Weight Matching**: Match fallback font weights to Rive text styles for consistent appearance
+4. **Fallback Order**: List fonts in order of preference; the first font with the glyph will be used
+5. **Global vs. Callback**: Use global `fallbackFonts` for simplicity, callbacks for fine-grained control
+6. **Font Availability**: Check font availability before using custom fonts by name
+
+## Common Use Cases
+
+### Multilingual Support
+```swift
+// Support multiple languages
+RiveFont.fallbackFonts = [
+    UIFont.systemFont(ofSize: 14),  // Default system font with wide character support
+    UIFont(name: "NotoSansCJK-Regular", size: 14)!  // CJK characters
+]
+```
+
+### Emoji Support
+```swift
+// Ensure emoji rendering
+RiveFont.fallbackFonts = [
+    UIFont.systemFont(ofSize: 14),  // System font includes emoji
+    RiveFallbackFontDescriptor()
+]
+```
+
+### Special Characters
+```swift
+// Support mathematical or special symbols
+RiveFont.fallbackFonts = [
+    UIFont(name: "Menlo", size: 14)!,  // Monospace with good symbol support
+    UIFont.systemFont(ofSize: 14)
+]
+```
+
+## Troubleshooting
+
+### Missing Characters Still Not Rendering
+- Verify fallback fonts are set before creating `RiveView`
+- Check that fallback fonts contain the required glyphs
+- Ensure custom fonts are properly added to your project
+
+### Font Weight Not Matching
+- Use the `fallbackFontsCallback` to match weights precisely
+- Test different font weights to find the best match
+
+### Performance Concerns
+- Limit the number of fallback fonts in the array
+- Use font descriptors instead of loading many font instances
+
+## See Also
+
+- [Rive Text](/advanced/rive-text) - Working with dynamic text
+- [Data Binding](/advanced/data-binding) - Binding data to animations

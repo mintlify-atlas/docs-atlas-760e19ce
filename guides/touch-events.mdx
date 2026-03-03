@@ -1,0 +1,459 @@
+---
+title: Handling Touch Interactions
+description: Learn how to handle user interactions with Rive animations on iOS, macOS, and visionOS
+---
+
+Rive animations can respond to touch and mouse interactions through state machines. This guide covers how to handle touch events across all Apple platforms.
+
+## Automatic Touch Handling
+
+When you use a Rive animation with a state machine that has listeners, touch events are handled automatically:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct InteractiveView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        fileName: "hero_editor"
+    )
+    
+    var body: some View {
+        viewModel.view()
+            .aspectRatio(1, contentMode: .fit)
+    }
+}
+```
+
+If your state machine has listeners configured, users can tap/click on interactive areas and the animation will respond automatically.
+
+## Multiple Interactive Animations
+
+You can easily display multiple interactive animations:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct TouchEventsView: View {
+    @StateObject private var jelly = RiveViewModel(fileName: "hero_editor")
+    @StateObject private var playButton = RiveViewModel(fileName: "play_button_event_example")
+    @StateObject private var lighthouse = RiveViewModel(fileName: "switch_event_example")
+    @StateObject private var eightball = RiveViewModel(fileName: "magic_8-ball_v2")
+    @StateObject private var toggle = RiveViewModel(fileName: "light_switch")
+    
+    var body: some View {
+        ScrollView {
+            VStack {
+                jelly.view()
+                    .aspectRatio(1, contentMode: .fit)
+                
+                playButton.view()
+                    .aspectRatio(1, contentMode: .fit)
+                
+                lighthouse.view()
+                    .aspectRatio(1, contentMode: .fit)
+                
+                eightball.view()
+                    .aspectRatio(1, contentMode: .fit)
+                
+                toggle.view()
+                    .aspectRatio(1, contentMode: .fit)
+            }
+        }
+    }
+}
+```
+
+Each animation handles its own touch events independently.
+
+## Touch Event Delegates
+
+For more control, implement the `RiveStateMachineDelegate` protocol to receive touch event callbacks:
+
+```swift
+import RiveRuntime
+
+class TouchHandler: NSObject, RiveStateMachineDelegate {
+    func touchBegan(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+        print("Touch began at: \(location)")
+    }
+    
+    func touchMoved(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+        print("Touch moved to: \(location)")
+    }
+    
+    func touchEnded(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+        print("Touch ended at: \(location)")
+    }
+    
+    func touchCancelled(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+        print("Touch cancelled at: \(location)")
+    }
+}
+```
+
+### Using the Delegate
+
+<Tabs>
+  <Tab title="UIKit">
+    ```swift
+    import UIKit
+    import RiveRuntime
+
+    class InteractiveViewController: UIViewController, RiveStateMachineDelegate {
+        var viewModel = RiveViewModel(fileName: "hero_editor")
+        var riveView: RiveView!
+        
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            
+            riveView = viewModel.createRiveView()
+            riveView.stateMachineDelegate = self
+            
+            view.addSubview(riveView)
+            riveView.frame = view.frame
+        }
+        
+        func touchBegan(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+            print("User tapped at: \(location)")
+        }
+        
+        func touchEnded(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+            print("User released at: \(location)")
+        }
+    }
+    ```
+  </Tab>
+
+  <Tab title="AppKit (macOS)">
+    ```swift
+    import Cocoa
+    import RiveRuntime
+
+    class InteractiveViewController: NSViewController, RiveStateMachineDelegate {
+        var viewModel = RiveViewModel(fileName: "hero_editor")
+        var riveView: RiveView!
+        
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            
+            riveView = viewModel.createRiveView()
+            riveView.stateMachineDelegate = self
+            
+            view.addSubview(riveView)
+            riveView.frame = view.bounds
+        }
+        
+        func touchBegan(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+            print("Mouse down at: \(location)")
+        }
+        
+        func touchEnded(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+            print("Mouse up at: \(location)")
+        }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Hit Testing
+
+Receive information about what was hit during touch events:
+
+```swift
+import RiveRuntime
+
+class HitTestViewController: UIViewController, RiveStateMachineDelegate {
+    var viewModel = RiveViewModel(fileName: "interactive")
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let riveView = viewModel.createRiveView()
+        riveView.stateMachineDelegate = self
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+    
+    func stateMachine(
+        _ stateMachine: RiveStateMachineInstance,
+        didReceiveHitResult hitResult: RiveHitResult,
+        from event: RiveTouchEvent
+    ) {
+        switch event {
+        case .began:
+            print("Touch began, hit components: \(hitResult)")
+        case .moved:
+            print("Touch moved, hit components: \(hitResult)")
+        case .ended:
+            print("Touch ended, hit components: \(hitResult)")
+        case .cancelled:
+            print("Touch cancelled")
+        case .exited:
+            print("Touch exited artboard")
+        @unknown default:
+            break
+        }
+    }
+}
+```
+
+## Receiving Rive Events
+
+Listen for custom events fired from your Rive animations:
+
+```swift
+import RiveRuntime
+
+class EventViewController: UIViewController, RiveStateMachineDelegate {
+    var viewModel = RiveViewModel(
+        fileName: "animation_with_events",
+        stateMachineName: "State Machine 1"
+    )
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let riveView = viewModel.createRiveView()
+        riveView.stateMachineDelegate = self
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+    
+    func onRiveEventReceived(onRiveEvent riveEvent: RiveEvent) {
+        let eventName = riveEvent.name()
+        print("Received Rive event: \(eventName)")
+        
+        // Handle specific events
+        switch eventName {
+        case "onComplete":
+            print("Animation completed")
+        case "onButtonClick":
+            print("Button was clicked")
+        default:
+            print("Unknown event: \(eventName)")
+        }
+    }
+}
+```
+
+## State Machine State Changes
+
+Monitor when the state machine changes states:
+
+```swift
+import RiveRuntime
+
+class StateMonitorViewController: UIViewController, RiveStateMachineDelegate {
+    var viewModel = RiveViewModel(
+        fileName: "animation",
+        stateMachineName: "State Machine 1"
+    )
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let riveView = viewModel.createRiveView()
+        riveView.stateMachineDelegate = self
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+    
+    func stateMachine(
+        _ stateMachine: RiveStateMachineInstance,
+        didChangeState stateName: String
+    ) {
+        print("State machine changed to: \(stateName)")
+        
+        // React to specific states
+        switch stateName {
+        case "Idle":
+            print("Entered idle state")
+        case "Active":
+            print("Entered active state")
+        default:
+            break
+        }
+    }
+}
+```
+
+## State Machine Input Changes
+
+Receive notifications when inputs change:
+
+```swift
+func stateMachine(
+    _ stateMachine: RiveStateMachineInstance,
+    receivedInput input: StateMachineInput
+) {
+    print("Input changed: \(input.name())")
+}
+```
+
+## Forwarding Touch Events
+
+By default, Rive views consume touch events. To allow touch events to pass through to views behind the Rive view:
+
+```swift
+let viewModel = RiveViewModel(fileName: "animation")
+let riveView = viewModel.createRiveView()
+
+// Forward listener events to next responders
+riveView.forwardsListenerEvents = true
+
+// Or set on view model
+viewModel.forwardsListenerEvents = true
+```
+
+This is useful when:
+- You have a semi-transparent animation over other UI
+- You want gesture recognizers to work alongside Rive interactions
+- You need to handle events in parent views
+
+## Platform-Specific Touch Handling
+
+### iOS/visionOS
+
+```swift
+import UIKit
+import RiveRuntime
+
+class iOSTouchViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let viewModel = RiveViewModel(fileName: "interactive")
+        let riveView = viewModel.createRiveView()
+        
+        // iOS-specific: Control exclusive touch
+        riveView.isExclusiveTouch = false  // Allow simultaneous touches
+        
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+}
+```
+
+### macOS
+
+```swift
+import Cocoa
+import RiveRuntime
+
+class macOSTouchViewController: NSViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let viewModel = RiveViewModel(fileName: "interactive")
+        let riveView = viewModel.createRiveView()
+        
+        // macOS automatically handles mouse tracking
+        view.addSubview(riveView)
+        riveView.frame = view.bounds
+    }
+}
+```
+
+On macOS:
+- Touch events are actually mouse events
+- The same delegate methods work
+- Mouse tracking is set up automatically
+- Dragging is supported through `touchMoved`
+
+## Complete Delegate Protocol
+
+All available `RiveStateMachineDelegate` methods:
+
+```swift
+protocol RiveStateMachineDelegate: AnyObject {
+    // Touch/Mouse events (coordinates in view space)
+    func touchBegan(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint)
+    func touchMoved(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint)
+    func touchEnded(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint)
+    func touchCancelled(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint)
+    func touchExited(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint)
+    
+    // Hit testing results
+    func stateMachine(
+        _ stateMachine: RiveStateMachineInstance,
+        didReceiveHitResult hitResult: RiveHitResult,
+        from event: RiveTouchEvent
+    )
+    
+    // State machine changes
+    func stateMachine(
+        _ stateMachine: RiveStateMachineInstance,
+        didChangeState stateName: String
+    )
+    
+    // Input changes
+    func stateMachine(
+        _ stateMachine: RiveStateMachineInstance,
+        receivedInput input: StateMachineInput
+    )
+    
+    // Custom Rive events
+    func onRiveEventReceived(onRiveEvent riveEvent: RiveEvent)
+}
+```
+
+All methods are optional - only implement the ones you need.
+
+## Best Practices
+
+1. **Use State Machines** - Touch events require state machines with listeners configured in the Rive editor
+2. **Test on Device** - Touch interactions may feel different on device vs simulator
+3. **Handle All States** - Implement both `touchBegan` and `touchEnded` for complete interactions
+4. **Consider Hit Areas** - Make interactive areas large enough for comfortable tapping (44x44pt minimum on iOS)
+5. **Provide Feedback** - Use Rive events to provide haptic or audio feedback
+6. **Forward Events Carefully** - Only enable `forwardsListenerEvents` when needed to avoid conflicts
+7. **Clean Up Delegates** - Set delegates to nil in `deinit` to avoid retain cycles
+
+## Common Patterns
+
+### Button-Like Interaction
+
+```swift
+class ButtonAnimationView: UIViewController, RiveStateMachineDelegate {
+    var viewModel = RiveViewModel(fileName: "button")
+    var onTap: (() -> Void)?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let riveView = viewModel.createRiveView()
+        riveView.stateMachineDelegate = self
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+    
+    func touchEnded(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+        onTap?()
+    }
+}
+```
+
+### Drag Interaction
+
+```swift
+class DragAnimationView: UIViewController, RiveStateMachineDelegate {
+    var viewModel = RiveViewModel(fileName: "slider")
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let riveView = viewModel.createRiveView()
+        riveView.stateMachineDelegate = self
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+    
+    func touchMoved(onArtboard artboard: RiveArtboard?, atLocation location: CGPoint) {
+        // Update state machine number input based on touch position
+        let progress = location.x / view.bounds.width
+        viewModel.setInput("progress", value: Float(progress))
+    }
+}
+```
+
+## Next Steps
+
+- [SwiftUI Guide](/guides/swiftui) - Using Rive with SwiftUI
+- [UIKit Guide](/guides/uikit) - Using Rive with UIKit  
+- [AppKit Guide](/guides/appkit) - Using Rive with AppKit
+- [RiveStateMachineInstance API](/api/rive-state-machine-instance) - Complete API documentation

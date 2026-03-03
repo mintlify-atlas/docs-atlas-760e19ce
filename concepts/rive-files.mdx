@@ -1,0 +1,172 @@
+---
+title: Rive Files
+description: Learn how to load and work with .riv files using the RiveFile class
+---
+
+The `RiveFile` class is the entry point for loading Rive animations in iOS. It represents a compiled `.riv` file containing artboards, animations, state machines, and assets.
+
+## Overview
+
+A Rive file (`.riv`) is a binary format that contains all the graphics, animations, state machines, and interactive elements designed in the Rive editor. The `RiveFile` class provides methods to load these files from various sources and access their contents.
+
+## Loading a Rive File
+
+### From Bundle Resources
+
+Load a `.riv` file from your app's bundle:
+
+```swift
+do {
+    let file = try RiveFile(name: "truck")
+} catch {
+    print("Failed to load file: \(error)")
+}
+```
+
+With a custom extension:
+
+```swift
+do {
+    let file = try RiveFile(
+        name: "animation",
+        extension: ".riv",
+        in: .main,
+        loadCdn: true
+    )
+} catch {
+    print("Failed to load file: \(error)")
+}
+```
+
+### From Raw Data
+
+```swift
+let data: Data = // your rive file data
+do {
+    let file = try RiveFile(data: data, loadCdn: true)
+} catch {
+    print("Failed to load file: \(error)")
+}
+```
+
+### From HTTP URL
+
+Load files asynchronously from a remote URL:
+
+```swift
+class MyDelegate: RiveFileDelegate {
+    func riveFileDidLoad(_ riveFile: RiveFile, error: NSError?) -> Bool {
+        if let error = error {
+            print("Error loading file: \(error)")
+            return false
+        }
+        print("File loaded successfully")
+        return true
+    }
+    
+    func riveFileDidError(_ error: NSError) {
+        print("File loading error: \(error)")
+    }
+}
+
+let delegate = MyDelegate()
+let file = RiveFile(
+    httpUrl: "https://example.com/animation.riv",
+    loadCdn: true,
+    with: delegate
+)
+```
+
+## Accessing Artboards
+
+Once loaded, you can access artboards from the file:
+
+```swift
+do {
+    // Get the default artboard
+    let artboard = try file.artboard()
+    
+    // Get artboard by name
+    let namedArtboard = try file.artboard(fromName: "MyArtboard")
+    
+    // Get artboard by index
+    let indexedArtboard = try file.artboard(from: 0)
+    
+    // List all artboard names
+    let names = file.artboardNames()
+    print("Available artboards: \(names)")
+} catch {
+    print("Error accessing artboard: \(error)")
+}
+```
+
+## Version Information
+
+```swift
+let major = RiveFile.majorVersion
+let minor = RiveFile.minorVersion
+print("Rive Runtime Version: \(major).\(minor)")
+```
+
+## Custom Asset Loading
+
+Provide a custom asset loader for fonts, images, and audio:
+
+```swift
+let customLoader: LoadAsset = { asset, data, factory in
+    // Custom logic to load and process assets
+    print("Loading asset: \(asset)")
+    return true
+}
+
+do {
+    let file = try RiveFile(
+        name: "animation",
+        loadCdn: false,
+        customLoader: customLoader
+    )
+} catch {
+    print("Failed to load file: \(error)")
+}
+```
+
+## Using with RiveModel
+
+For a higher-level interface, use `RiveModel` which wraps `RiveFile`:
+
+```swift
+do {
+    let model = try RiveModel(
+        fileName: "truck",
+        extension: ".riv",
+        in: .main,
+        loadCdn: true
+    )
+    // Access the underlying RiveFile
+    let file = model.riveFile
+} catch {
+    print("Failed to create model: \(error)")
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Enable CDN loading for assets">
+    Set `loadCdn: true` when loading files to automatically fetch hosted assets like images and fonts from Rive's CDN.
+  </Accordion>
+  
+  <Accordion title="Handle errors gracefully">
+    Always use do-catch blocks when loading Rive files to handle potential errors like missing files or malformed data.
+  </Accordion>
+  
+  <Accordion title="Reuse RiveFile instances">
+    A single `RiveFile` instance can create multiple artboard instances, reducing memory usage and load times.
+  </Accordion>
+</AccordionGroup>
+
+## Related Classes
+
+- [RiveArtboard](/concepts/artboards) - Access artboards from a RiveFile
+- [RiveModel](/api/rive-model) - Higher-level wrapper around RiveFile
+- RiveViewModel - SwiftUI integration with automatic file loading

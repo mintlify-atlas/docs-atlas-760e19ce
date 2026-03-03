@@ -1,0 +1,396 @@
+---
+title: Using Rive with UIKit
+description: Learn how to integrate Rive animations into UIKit applications
+---
+
+Rive provides full UIKit support through `RiveViewModel` and `RiveView`. This guide covers integration patterns for UIKit apps, including Storyboard and programmatic approaches.
+
+## Quick Start
+
+The fastest way to add a Rive animation to UIKit is using `RiveViewModel`:
+
+```swift
+import UIKit
+import RiveRuntime
+
+class SimpleAnimationViewController: UIViewController {
+    var viewModel = RiveViewModel(fileName: "truck")
+    
+    override func viewWillAppear(_ animated: Bool) {
+        let riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+}
+```
+
+## Integration Approaches
+
+<Tabs>
+  <Tab title="Programmatic">
+    Create and configure views entirely in code:
+
+    ```swift
+    import UIKit
+    import RiveRuntime
+
+    class AnimationViewController: UIViewController {
+        private var viewModel: RiveViewModel!
+        private var riveView: RiveView!
+        
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            setupRiveAnimation()
+        }
+        
+        private func setupRiveAnimation() {
+            viewModel = RiveViewModel(fileName: "halloween")
+            riveView = viewModel.createRiveView()
+            
+            view.addSubview(riveView)
+            
+            // Setup constraints
+            riveView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                riveView.topAnchor.constraint(equalTo: view.topAnchor),
+                riveView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                riveView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                riveView.heightAnchor.constraint(equalToConstant: 300)
+            ])
+        }
+    }
+    ```
+  </Tab>
+
+  <Tab title="Storyboard">
+    Connect a `RiveView` from Interface Builder:
+
+    **1. Add a UIView to your Storyboard**
+    
+    **2. Set the custom class to `RiveView`:**
+    - Select the view in Interface Builder
+    - Open the Identity Inspector
+    - Set Class to `RiveView`
+    - Set Module to `RiveRuntime`
+
+    **3. Create an IBOutlet and configure:**
+
+    ```swift
+    import UIKit
+    import RiveRuntime
+
+    class LayoutViewController: UIViewController {
+        @IBOutlet weak var riveView: RiveView!
+        var viewModel = RiveViewModel(fileName: "truck_v7")
+        
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            viewModel.setView(riveView)
+        }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Controlling Animations
+
+### Playback Controls
+
+```swift
+class PlaybackViewController: UIViewController {
+    var viewModel = RiveViewModel(fileName: "animation")
+    var riveView: RiveView!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+    
+    @IBAction func playTapped(_ sender: UIButton) {
+        viewModel.play()
+    }
+    
+    @IBAction func pauseTapped(_ sender: UIButton) {
+        viewModel.pause()
+    }
+    
+    @IBAction func stopTapped(_ sender: UIButton) {
+        viewModel.stop()
+    }
+    
+    @IBAction func resetTapped(_ sender: UIButton) {
+        viewModel.reset()
+    }
+}
+```
+
+### State Machine Interactions
+
+```swift
+class StateMachineViewController: UIViewController {
+    var viewModel = RiveViewModel(
+        fileName: "skills",
+        stateMachineName: "Designer's Test"
+    )
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+    
+    @IBAction func beginnerButtonTapped(_ sender: UIButton) {
+        viewModel.setInput("Level", value: 0.0)
+    }
+    
+    @IBAction func intermediateButtonTapped(_ sender: UIButton) {
+        viewModel.setInput("Level", value: 1.0)
+    }
+    
+    @IBAction func expertButtonTapped(_ sender: UIButton) {
+        viewModel.setInput("Level", value: 2.0)
+    }
+}
+```
+
+## Layout Configuration
+
+### Fit and Alignment
+
+```swift
+class LayoutViewController: UIViewController {
+    @IBOutlet weak var riveView: RiveView!
+    var viewModel = RiveViewModel(fileName: "truck_v7")
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        viewModel.setView(riveView)
+    }
+    
+    @IBAction func fitButtonTriggered(_ sender: UIButton) {
+        var fit: RiveFit = .contain
+        
+        switch sender.currentTitle {
+        case "Fill": fit = .fill
+        case "Contain": fit = .contain
+        case "Cover": fit = .cover
+        case "Fit Width": fit = .fitWidth
+        case "Fit Height": fit = .fitHeight
+        case "Scale Down": fit = .scaleDown
+        case "None": fit = .noFit
+        default: fit = .contain
+        }
+        
+        viewModel.fit = fit
+    }
+    
+    @IBAction func alignmentButtonTriggered(_ sender: UIButton) {
+        var alignment: RiveAlignment = .center
+        
+        switch sender.currentTitle {
+        case "Top Left": alignment = .topLeft
+        case "Top Center": alignment = .topCenter
+        case "Top Right": alignment = .topRight
+        case "Center Left": alignment = .centerLeft
+        case "Center": alignment = .center
+        case "Center Right": alignment = .centerRight
+        case "Bottom Left": alignment = .bottomLeft
+        case "Bottom Center": alignment = .bottomCenter
+        case "Bottom Right": alignment = .bottomRight
+        default: alignment = .center
+        }
+        
+        viewModel.alignment = alignment
+    }
+}
+```
+
+### Available Options
+
+**Fit Modes:**
+- `.contain` - Fit within bounds while maintaining aspect ratio
+- `.fill` - Fill the entire view
+- `.cover` - Cover the view while maintaining aspect ratio
+- `.fitWidth` - Match the view's width
+- `.fitHeight` - Match the view's height
+- `.scaleDown` - Only scale down if larger
+- `.layout` - Resize artboard to view size
+- `.noFit` - No scaling
+
+**Alignment:**
+- `.topLeft`, `.topCenter`, `.topRight`
+- `.centerLeft`, `.center`, `.centerRight`
+- `.bottomLeft`, `.bottomCenter`, `.bottomRight`
+
+## Loading from URL
+
+```swift
+class HttpAnimationViewController: UIViewController {
+    var viewModel = RiveViewModel(
+        webURL: "https://cdn.rive.app/animations/truck.riv"
+    )
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        let riveView = viewModel.createRiveView()
+        view.addSubview(riveView)
+        riveView.frame = view.frame
+    }
+}
+```
+
+## Working with RiveView Directly
+
+For advanced use cases, you can work with `RiveView` directly without a view model:
+
+```swift
+import UIKit
+import RiveRuntime
+
+class DirectRiveViewController: UIViewController {
+    private var riveView: RiveView!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        do {
+            // Create model
+            let model = try RiveModel(fileName: "truck")
+            
+            // Create and configure view
+            riveView = RiveView(model: model, autoPlay: true)
+            riveView.fit = .contain
+            riveView.alignment = .center
+            
+            view.addSubview(riveView)
+            riveView.frame = view.bounds
+            riveView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        } catch {
+            print("Failed to load Rive file: \(error)")
+        }
+    }
+}
+```
+
+## State Machine Inputs
+
+### Trigger Inputs
+
+```swift
+viewModel.triggerInput("myTrigger")
+```
+
+### Boolean Inputs
+
+```swift
+viewModel.setInput("isEnabled", value: true)
+viewModel.setInput("isVisible", value: false)
+```
+
+### Number Inputs
+
+```swift
+viewModel.setInput("speed", value: 2.5)
+viewModel.setInput("progress", value: 0.75)
+```
+
+### Nested Artboard Inputs
+
+```swift
+// Trigger in nested artboard
+viewModel.triggerInput("action", path: "NestedArtboard")
+
+// Boolean in nested artboard
+viewModel.setInput("enabled", value: true, path: "Level1/Level2")
+
+// Number in nested artboard
+viewModel.setInput("value", value: 50.0, path: "NestedArtboard")
+```
+
+## Lifecycle Management
+
+### Proper Cleanup
+
+```swift
+class AnimationViewController: UIViewController {
+    var viewModel: RiveViewModel?
+    var riveView: RiveView?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        viewModel = RiveViewModel(fileName: "animation")
+        riveView = viewModel?.createRiveView()
+        if let riveView = riveView {
+            view.addSubview(riveView)
+            riveView.frame = view.frame
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        viewModel?.pause()
+    }
+    
+    deinit {
+        viewModel?.stop()
+        viewModel?.deregisterView()
+    }
+}
+```
+
+## Performance Optimization
+
+### Frame Rate Control
+
+```swift
+override func viewDidLoad() {
+    super.viewDidLoad()
+    let riveView = viewModel.createRiveView()
+    view.addSubview(riveView)
+    
+    // Set preferred FPS
+    viewModel.setPreferredFramesPerSecond(preferredFramesPerSecond: 30)
+}
+```
+
+### Memory Management
+
+```swift
+class EfficientViewController: UIViewController {
+    var viewModel: RiveViewModel?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // Create view model only when needed
+        viewModel = RiveViewModel(fileName: "animation", autoPlay: false)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        viewModel?.play()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        viewModel?.pause()
+    }
+}
+```
+
+## Best Practices
+
+1. **Use RiveViewModel** - Prefer `RiveViewModel` over direct `RiveView` manipulation for easier state management
+2. **Frame Management** - Set frames in `viewWillAppear` or use Auto Layout constraints
+3. **Pause When Hidden** - Pause animations in `viewWillDisappear` to save battery
+4. **Cleanup Resources** - Stop animations and deregister views in `deinit`
+5. **Handle Errors** - Wrap `RiveModel` initialization in do-catch blocks
+6. **Reuse View Models** - Create view models once and reuse them
+
+## Next Steps
+
+- [Loading Assets](/guides/loading-assets) - Learn different ways to load .riv files
+- [Touch Events](/guides/touch-events) - Handle user interactions
+- [RiveViewModel API](/api/rive-view-model) - Complete API documentation

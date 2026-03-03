@@ -1,0 +1,370 @@
+---
+title: Audio Control
+description: Learn how to control audio volume in your Rive animations
+---
+
+The Rive iOS Runtime provides built-in audio support for Rive files with audio assets. You can control the playback volume for animations with embedded or referenced audio.
+
+## Overview
+
+Rive animations can include audio assets that play during animation playback. The iOS Runtime allows you to adjust the volume of these audio assets through the `volume` property on `RiveModel` and `RiveArtboard`.
+
+## Volume Property
+
+The volume is controlled through a `Float` property with a range typically from `0.0` (muted) to `1.0` (full volume):
+
+```swift
+import RiveRuntime
+
+let riveModel = try RiveModel(fileName: "animation_with_audio")
+
+// Set volume (0.0 = muted, 1.0 = full volume)
+riveModel.volume = 0.5
+```
+
+## Default Volume
+
+The runtime defaults to full volume (`1.0`) when no volume is explicitly set:
+
+```swift
+// Default volume is 1.0
+let model = try RiveModel(fileName: "audio_file")
+print(model.volume)  // Prints: 1.0
+```
+
+## Setting Volume with RiveModel
+
+The `RiveModel` class provides a `volume` property:
+
+```swift
+import RiveRuntime
+
+class AudioController {
+    let riveModel: RiveModel
+    
+    init() {
+        riveModel = try! RiveModel(fileName: "lip_sync_test")
+        try? riveModel.setArtboard()
+        try? riveModel.setStateMachine("State Machine 1")
+    }
+    
+    func setVolume(_ volume: Float) {
+        // Volume range: 0.0 (muted) to 1.0 (full)
+        riveModel.volume = volume
+    }
+    
+    func mute() {
+        riveModel.volume = 0.0
+    }
+    
+    func unmute() {
+        riveModel.volume = 1.0
+    }
+}
+```
+
+## Volume with RiveViewModel (SwiftUI)
+
+For SwiftUI applications using `RiveViewModel`:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct AudioView: View {
+    @StateObject private var riveViewModel = RiveViewModel(
+        fileName: "lip-sync_test",
+        stateMachineName: "State Machine 1",
+        artboardName: "Lip_sync_2"
+    )
+    
+    @State private var volume: Float = 1.0
+    
+    var body: some View {
+        VStack {
+            riveViewModel.view()
+            
+            VStack {
+                Text("Volume: \(Int(volume * 100))%")
+                
+                Slider(value: $volume, in: 0...1) { _ in
+                    riveViewModel.riveModel?.volume = volume
+                }
+            }
+            .padding()
+        }
+        .onAppear {
+            // Set initial volume
+            riveViewModel.riveModel?.volume = volume
+        }
+    }
+}
+```
+
+## Complete SwiftUI Example
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct AudioControlView: View {
+    @StateObject private var riveViewModel = RiveViewModel(
+        fileName: "lip-sync_test",
+        stateMachineName: "State Machine 1",
+        artboardName: "Lip_sync_2"
+    )
+    
+    @State private var volume: Double = 1.0
+    @State private var isMuted: Bool = false
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            // Rive animation
+            riveViewModel.view()
+                .frame(height: 400)
+            
+            // Volume controls
+            VStack(spacing: 15) {
+                HStack {
+                    Image(systemName: "speaker.fill")
+                    
+                    Slider(value: $volume, in: 0...1) { editing in
+                        if !editing {
+                            updateVolume()
+                        }
+                    }
+                    .disabled(isMuted)
+                    
+                    Image(systemName: "speaker.wave.3.fill")
+                }
+                
+                HStack(spacing: 20) {
+                    Button(isMuted ? "Unmute" : "Mute") {
+                        toggleMute()
+                    }
+                    
+                    Text("Volume: \(Int(isMuted ? 0 : volume * 100))%")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding()
+        }
+        .onAppear {
+            riveViewModel.riveModel?.volume = Float(volume)
+        }
+    }
+    
+    private func updateVolume() {
+        riveViewModel.riveModel?.volume = Float(volume)
+    }
+    
+    private func toggleMute() {
+        isMuted.toggle()
+        riveViewModel.riveModel?.volume = isMuted ? 0.0 : Float(volume)
+    }
+}
+```
+
+## UIKit Example
+
+```swift
+import UIKit
+import RiveRuntime
+
+class AudioViewController: UIViewController {
+    @IBOutlet weak var riveView: RiveView!
+    @IBOutlet weak var volumeSlider: UISlider!
+    @IBOutlet weak var muteButton: UIButton!
+    
+    private var riveModel: RiveModel!
+    private var isMuted = false
+    private var savedVolume: Float = 1.0
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // Initialize Rive model
+        riveModel = try! RiveModel(fileName: "audio_animation")
+        try? riveModel.setArtboard()
+        try? riveModel.setStateMachine()
+        
+        // Set up view
+        riveView.setModel(riveModel)
+        
+        // Configure slider
+        volumeSlider.minimumValue = 0.0
+        volumeSlider.maximumValue = 1.0
+        volumeSlider.value = 1.0
+        
+        // Set initial volume
+        riveModel.volume = 1.0
+    }
+    
+    @IBAction func volumeSliderChanged(_ slider: UISlider) {
+        let volume = slider.value
+        riveModel.volume = volume
+        savedVolume = volume
+        
+        if volume == 0 {
+            isMuted = true
+            updateMuteButton()
+        } else if isMuted {
+            isMuted = false
+            updateMuteButton()
+        }
+    }
+    
+    @IBAction func muteButtonTapped(_ sender: UIButton) {
+        isMuted.toggle()
+        
+        if isMuted {
+            savedVolume = riveModel.volume
+            riveModel.volume = 0.0
+            volumeSlider.value = 0.0
+        } else {
+            riveModel.volume = savedVolume
+            volumeSlider.value = savedVolume
+        }
+        
+        updateMuteButton()
+    }
+    
+    private func updateMuteButton() {
+        let title = isMuted ? "Unmute" : "Mute"
+        muteButton.setTitle(title, for: .normal)
+    }
+}
+```
+
+## Volume Persistence
+
+The `RiveModel` stores the volume value internally. When you set an artboard, the stored volume is applied:
+
+```swift
+let model = try RiveModel(fileName: "audio_file")
+
+// Set volume before artboard
+model.volume = 0.5
+
+// Volume persists when setting artboard
+try model.setArtboard()
+print(model.volume)  // Prints: 0.5
+```
+
+If no artboard is set, the model stores the volume and applies it when an artboard is configured.
+
+## Artboard-Level Volume Control
+
+You can also control volume directly on the artboard:
+
+```swift
+import RiveRuntime
+
+let artboard = try riveFile.artboard()
+artboard.volume = 0.3  // Note: In Swift this is accessed as __volume
+```
+
+In Swift, the property is refined and typically accessed through `RiveModel`.
+
+## Volume Range
+
+While the typical range is `0.0` to `1.0`:
+- `0.0` = Completely muted
+- `0.5` = Half volume
+- `1.0` = Full volume (default)
+
+Values outside this range are typically clamped by the audio system.
+
+## Best Practices
+
+1. **Set Volume Early**: Configure volume before or immediately after loading the Rive file
+2. **Save User Preferences**: Persist volume settings using `UserDefaults` or similar
+3. **Respect System Volume**: The Rive volume is relative to the system volume
+4. **Provide UI Controls**: Give users slider controls for fine-tuned volume adjustment
+5. **Mute State**: Implement separate mute functionality rather than just setting volume to 0
+6. **Initial Volume**: Consider starting with a lower volume (e.g., 0.5) to avoid startling users
+
+## Common Patterns
+
+### Volume Presets
+```swift
+enum VolumePreset: Float {
+    case muted = 0.0
+    case low = 0.25
+    case medium = 0.5
+    case high = 0.75
+    case full = 1.0
+}
+
+riveModel.volume = VolumePreset.medium.rawValue
+```
+
+### Fade In/Out
+```swift
+func fadeOut(duration: TimeInterval = 1.0) {
+    let startVolume = riveModel.volume
+    let steps = 20
+    let delay = duration / Double(steps)
+    
+    for i in 0...steps {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay * Double(i)) {
+            let progress = Float(i) / Float(steps)
+            self.riveModel.volume = startVolume * (1.0 - progress)
+        }
+    }
+}
+```
+
+### Volume Persistence
+```swift
+class AudioSettings {
+    private let volumeKey = "riveAudioVolume"
+    
+    var volume: Float {
+        get {
+            UserDefaults.standard.float(forKey: volumeKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: volumeKey)
+        }
+    }
+    
+    func apply(to model: RiveModel) {
+        model.volume = volume
+    }
+}
+```
+
+## Troubleshooting
+
+### Audio Not Playing
+- Verify the Rive file contains audio assets
+- Check that volume is not set to 0.0
+- Ensure device volume is not muted
+- Verify audio session is configured correctly
+
+### Volume Changes Not Taking Effect
+- Set volume after the artboard is loaded
+- Access volume through `RiveModel` rather than artboard directly
+- Ensure you're modifying the correct model instance
+
+## Audio Session Configuration
+
+For proper audio playback, configure your app's audio session:
+
+```swift
+import AVFoundation
+
+do {
+    try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+    try AVAudioSession.sharedInstance().setActive(true)
+} catch {
+    print("Failed to set audio session: \(error)")
+}
+```
+
+## See Also
+
+- [RiveModel](/api/rive-model) - Working with Rive models
+- [Performance](/advanced/performance) - Optimizing Rive animations

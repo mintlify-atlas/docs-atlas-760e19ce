@@ -1,0 +1,462 @@
+---
+title: Loading .riv Files
+description: Learn how to load Rive animations from the bundle, URLs, and custom sources
+---
+
+Rive provides flexible options for loading `.riv` files into your iOS, macOS, or visionOS application. This guide covers all loading methods and asset handling strategies.
+
+## Loading from App Bundle
+
+The most common approach is to bundle `.riv` files with your app.
+
+### Basic Loading
+
+```swift
+import RiveRuntime
+
+// Load from main bundle (default)
+let viewModel = RiveViewModel(fileName: "animation")
+
+// Explicitly specify extension
+let viewModel2 = RiveViewModel(fileName: "animation", extension: ".riv")
+```
+
+### Custom Bundle
+
+```swift
+// Load from a specific bundle
+let customBundle = Bundle(identifier: "com.example.resources")!
+let viewModel = RiveViewModel(
+    fileName: "animation",
+    in: customBundle
+)
+```
+
+### Direct RiveModel Initialization
+
+```swift
+import RiveRuntime
+
+do {
+    // Create model directly
+    let model = try RiveModel(
+        fileName: "animation",
+        extension: ".riv",
+        in: .main
+    )
+    
+    // Use with view model
+    let viewModel = RiveViewModel(model, autoPlay: true)
+    
+    // Or use with view directly
+    let riveView = RiveView(model: model, autoPlay: true)
+} catch {
+    print("Failed to load Rive file: \(error)")
+}
+```
+
+## Loading from URL
+
+### HTTP/HTTPS URLs
+
+```swift
+import RiveRuntime
+
+let viewModel = RiveViewModel(
+    webURL: "https://cdn.rive.app/animations/truck.riv"
+)
+```
+
+### With Animation Name
+
+```swift
+let viewModel = RiveViewModel(
+    webURL: "https://cdn.rive.app/animations/truck.riv",
+    animationName: "idle"
+)
+```
+
+### With State Machine
+
+```swift
+let viewModel = RiveViewModel(
+    webURL: "https://cdn.rive.app/animations/hero.riv",
+    stateMachineName: "State Machine 1"
+)
+```
+
+### Handling Load State
+
+When loading from URLs, the file downloads asynchronously:
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct AsyncLoadView: View {
+    @StateObject private var viewModel = RiveViewModel(
+        webURL: "https://cdn.rive.app/animations/truck.riv"
+    )
+    @State private var isLoaded = false
+    
+    var body: some View {
+        ZStack {
+            if isLoaded {
+                viewModel.view()
+            } else {
+                ProgressView("Loading animation...")
+            }
+        }
+        .onAppear {
+            // Check if loaded
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                if viewModel.riveModel != nil {
+                    isLoaded = true
+                }
+            }
+        }
+    }
+}
+```
+
+### Using RiveFileDelegate
+
+For more control over the loading process:
+
+```swift
+import RiveRuntime
+
+class AnimationLoader: NSObject, RiveFileDelegate {
+    var viewModel: RiveViewModel?
+    
+    func loadAnimation() {
+        let model = RiveModel(
+            webURL: "https://cdn.rive.app/animations/truck.riv",
+            delegate: self,
+            loadCdn: true
+        )
+        viewModel = RiveViewModel(model, autoPlay: false)
+    }
+    
+    func riveFileDidLoad(_ riveFile: RiveFile) throws {
+        print("Animation loaded successfully")
+        viewModel?.play()
+    }
+    
+    func riveFileDidError(_ error: Error) {
+        print("Failed to load animation: \(error)")
+    }
+}
+```
+
+## Loading Embedded Assets
+
+Rive files can contain embedded images, fonts, and audio. By default, these are loaded from the .riv file.
+
+### Disabling CDN Loading
+
+```swift
+// Disable CDN loading, use only embedded assets
+let viewModel = RiveViewModel(
+    fileName: "animation",
+    loadCdn: false
+)
+```
+
+### Custom Asset Loading
+
+Provide your own asset loader for images and fonts:
+
+```swift
+import RiveRuntime
+
+let viewModel = RiveViewModel(
+    fileName: "simple_assets",
+    autoPlay: false,
+    loadCdn: false,
+    customLoader: { (asset: RiveFileAsset, data: Data, factory: RiveFactory) -> Bool in
+        // Handle image assets
+        if let imageAsset = asset as? RiveImageAsset {
+            guard let url = Bundle.main.url(
+                forResource: asset.uniqueName(),
+                withExtension: "jpeg"
+            ) else {
+                print("Failed to locate '\(asset.uniqueName())' in bundle")
+                return false
+            }
+            
+            guard let imageData = try? Data(contentsOf: url) else {
+                print("Failed to load \(url) from bundle")
+                return false
+            }
+            
+            imageAsset.renderImage(factory.decodeImage(imageData))
+            return true
+        }
+        
+        // Handle font assets
+        if let fontAsset = asset as? RiveFontAsset {
+            guard let url = Bundle.main.url(
+                forResource: asset.uniqueName(),
+                withExtension: asset.fileExtension()
+            ) else {
+                print("Failed to locate '\(asset.uniqueName())' in bundle")
+                return false
+            }
+            
+            guard let fontData = try? Data(contentsOf: url) else {
+                print("Failed to load \(url) from bundle")
+                return false
+            }
+            
+            fontAsset.font(factory.decodeFont(fontData))
+            return true
+        }
+        
+        return false
+    }
+)
+```
+
+## Selecting Artboards and Animations
+
+### Specific Artboard
+
+```swift
+let viewModel = RiveViewModel(
+    fileName: "multi_artboard_file",
+    artboardName: "Character"
+)
+```
+
+### Specific Animation
+
+```swift
+let viewModel = RiveViewModel(
+    fileName: "animations",
+    animationName: "idle",
+    artboardName: "Character"  // Optional
+)
+```
+
+### Specific State Machine
+
+```swift
+let viewModel = RiveViewModel(
+    fileName: "interactive",
+    stateMachineName: "State Machine 1",
+    artboardName: "Main"  // Optional
+)
+```
+
+### Listing Available Content
+
+```swift
+// Get all artboard names
+let artboardNames = viewModel.artboardNames()
+print("Available artboards: \(artboardNames)")
+```
+
+## Switching Content at Runtime
+
+### Change Animation
+
+```swift
+class AnimationController {
+    let viewModel = RiveViewModel(fileName: "animations")
+    
+    func switchToIdle() {
+        viewModel.play(animationName: "idle")
+    }
+    
+    func switchToRun() {
+        viewModel.play(animationName: "run")
+    }
+}
+```
+
+### Change Artboard
+
+```swift
+do {
+    try viewModel.configureModel(
+        artboardName: "NewArtboard",
+        animationName: "idle"
+    )
+    viewModel.play()
+} catch {
+    print("Failed to switch artboard: \(error)")
+}
+```
+
+### Reset to Default
+
+```swift
+// Reset to originally configured artboard/animation/state machine
+viewModel.resetToDefaultModel()
+viewModel.play()
+```
+
+## Advanced Loading Patterns
+
+### Preloading Multiple Files
+
+```swift
+import RiveRuntime
+
+class AnimationCache {
+    private var models: [String: RiveModel] = [:]
+    
+    func preload(fileNames: [String]) {
+        for fileName in fileNames {
+            do {
+                let model = try RiveModel(fileName: fileName)
+                models[fileName] = model
+            } catch {
+                print("Failed to preload \(fileName): \(error)")
+            }
+        }
+    }
+    
+    func getModel(for fileName: String) -> RiveModel? {
+        return models[fileName]
+    }
+}
+
+// Usage
+let cache = AnimationCache()
+cache.preload(fileNames: ["loader", "success", "error"])
+
+if let model = cache.getModel(for: "loader") {
+    let viewModel = RiveViewModel(model, autoPlay: true)
+}
+```
+
+### Lazy Loading with Error Handling
+
+```swift
+import SwiftUI
+import RiveRuntime
+
+struct LazyLoadView: View {
+    @State private var viewModel: RiveViewModel?
+    @State private var errorMessage: String?
+    @State private var isLoading = false
+    
+    var body: some View {
+        VStack {
+            if let viewModel = viewModel {
+                viewModel.view()
+            } else if let error = errorMessage {
+                Text("Error: \(error)")
+                    .foregroundColor(.red)
+            } else if isLoading {
+                ProgressView("Loading...")
+            } else {
+                Button("Load Animation") {
+                    loadAnimation()
+                }
+            }
+        }
+    }
+    
+    private func loadAnimation() {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            let model = try RiveModel(fileName: "animation")
+            viewModel = RiveViewModel(model, autoPlay: true)
+            isLoading = false
+        } catch {
+            errorMessage = error.localizedDescription
+            isLoading = false
+        }
+    }
+}
+```
+
+## Loading Options Summary
+
+<Tabs>
+  <Tab title="Bundle">
+    ```swift
+    // Default bundle loading
+    RiveViewModel(fileName: "animation")
+    
+    // Custom bundle
+    RiveViewModel(
+        fileName: "animation",
+        in: customBundle
+    )
+    
+    // With specific content
+    RiveViewModel(
+        fileName: "file",
+        animationName: "idle",
+        artboardName: "Character"
+    )
+    ```
+  </Tab>
+
+  <Tab title="URL">
+    ```swift
+    // Simple URL loading
+    RiveViewModel(
+        webURL: "https://example.com/animation.riv"
+    )
+    
+    // With animation
+    RiveViewModel(
+        webURL: "https://example.com/animation.riv",
+        animationName: "idle"
+    )
+    
+    // With state machine
+    RiveViewModel(
+        webURL: "https://example.com/animation.riv",
+        stateMachineName: "State Machine 1"
+    )
+    ```
+  </Tab>
+
+  <Tab title="Custom Assets">
+    ```swift
+    RiveViewModel(
+        fileName: "animation",
+        loadCdn: false,
+        customLoader: { (asset, data, factory) in
+            // Load images
+            if let imageAsset = asset as? RiveImageAsset {
+                // Load from bundle
+                return true
+            }
+            
+            // Load fonts
+            if let fontAsset = asset as? RiveFontAsset {
+                // Load from bundle
+                return true
+            }
+            
+            return false
+        }
+    )
+    ```
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+1. **Bundle for Production** - Include `.riv` files in your app bundle for best performance and offline support
+2. **Handle Loading States** - Show loading indicators when loading from URLs
+3. **Error Handling** - Always wrap `RiveModel` initialization in do-catch blocks
+4. **Preload When Possible** - Load animations during app startup or in background threads
+5. **Disable CDN When Not Needed** - Set `loadCdn: false` if you're providing all assets
+6. **Cache Remote Files** - Implement your own caching for URL-loaded files
+7. **Test Asset Loading** - Verify custom asset loaders work with all asset types in your animations
+
+## Next Steps
+
+- [SwiftUI Guide](/guides/swiftui) - Using Rive with SwiftUI
+- [UIKit Guide](/guides/uikit) - Using Rive with UIKit
+- [Touch Events](/guides/touch-events) - Handle user interactions

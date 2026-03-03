@@ -1,0 +1,136 @@
+---
+title: "RiveSMITrigger"
+description: "Trigger input class for firing one-time events in Rive state machines on iOS."
+---
+
+## Overview
+
+`RiveSMITrigger` represents a trigger input in a Rive state machine. Triggers are one-time events that can cause state transitions when fired.
+
+Unlike boolean and number inputs which maintain state, triggers are momentary - they fire once and automatically reset.
+
+Inherits from [RiveSMIInput](/api/rive-smi-input).
+
+## Methods
+
+### fire
+
+```objc
+- (void)fire;
+```
+
+Fires the trigger, causing any associated state transitions to occur.
+
+The trigger automatically resets after being fired.
+
+## Usage Example
+
+### Basic Usage
+
+```objc
+// Get a trigger input from the state machine
+RiveSMITrigger* clickTrigger = (RiveSMITrigger*)[stateMachine inputFromName:@"click"];
+
+// Fire the trigger
+[clickTrigger fire];
+```
+
+### Button Interaction
+
+```objc
+// Connect a button tap to a Rive trigger
+- (IBAction)buttonTapped:(UIButton*)sender {
+    RiveSMITrigger* buttonTrigger = (RiveSMITrigger*)[stateMachine inputFromName:@"onButtonTap"];
+    [buttonTrigger fire];
+}
+```
+
+### Multiple Triggers
+
+```objc
+// Initialize Rive view and get state machine
+RiveStateMachineInstance* stateMachine = [riveView stateMachine:@"State Machine 1"];
+
+// Get trigger inputs
+RiveSMITrigger* startTrigger = (RiveSMITrigger*)[stateMachine inputFromName:@"start"];
+RiveSMITrigger* stopTrigger = (RiveSMITrigger*)[stateMachine inputFromName:@"stop"];
+RiveSMITrigger* resetTrigger = (RiveSMITrigger*)[stateMachine inputFromName:@"reset"];
+
+// Fire triggers based on events
+[startTrigger fire];  // Start animation
+
+// Later...
+[stopTrigger fire];   // Stop animation
+
+// Later...
+[resetTrigger fire];  // Reset to initial state
+```
+
+### Gesture Recognition
+
+```objc
+// Fire trigger on swipe gesture
+- (void)handleSwipeGesture:(UISwipeGestureRecognizer*)gesture {
+    RiveSMITrigger* swipeTrigger;
+    
+    if (gesture.direction == UISwipeGestureRecognizerDirectionLeft) {
+        swipeTrigger = (RiveSMITrigger*)[stateMachine inputFromName:@"swipeLeft"];
+    } else if (gesture.direction == UISwipeGestureRecognizerDirectionRight) {
+        swipeTrigger = (RiveSMITrigger*)[stateMachine inputFromName:@"swipeRight"];
+    }
+    
+    [swipeTrigger fire];
+}
+```
+
+### Game Events
+
+```objc
+// Fire triggers based on game events
+RiveSMITrigger* collectCoin = (RiveSMITrigger*)[stateMachine inputFromName:@"collectCoin"];
+RiveSMITrigger* levelComplete = (RiveSMITrigger*)[stateMachine inputFromName:@"levelComplete"];
+RiveSMITrigger* gameOver = (RiveSMITrigger*)[stateMachine inputFromName:@"gameOver"];
+
+// When player collects a coin
+[collectCoin fire];
+
+// When level is completed
+[levelComplete fire];
+
+// When game ends
+[gameOver fire];
+```
+
+## Type Checking
+
+You can verify an input is a trigger before casting:
+
+```objc
+RiveSMIInput* input = [stateMachine inputFromName:@"myInput"];
+
+if ([input isTrigger]) {
+    RiveSMITrigger* trigger = (RiveSMITrigger*)input;
+    [trigger fire];
+}
+```
+
+## Trigger vs Boolean
+
+Use triggers for one-time events and booleans for persistent state:
+
+```objc
+// Trigger - fires once
+RiveSMITrigger* explosionTrigger = (RiveSMITrigger*)[stateMachine inputFromName:@"explode"];
+[explosionTrigger fire];  // Plays explosion animation once
+
+// Boolean - maintains state
+RiveSMIBool* isExploded = (RiveSMIBool*)[stateMachine inputFromName:@"isExploded"];
+[isExploded setValue:true];  // Keeps object in exploded state
+```
+
+## See Also
+
+- [RiveSMIInput](/api/rive-smi-input)
+- [RiveSMIBool](/api/rive-smi-bool)
+- [RiveSMINumber](/api/rive-smi-number)
+- [RiveStateMachineInstance](/api/rive-state-machine-instance)
